@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@vueuse/core": "^10.9.0",
     "bungie-api-ts": "^5.1.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",

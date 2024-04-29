@@ -1,28 +1,35 @@
-import {getActivityHistory, getHistoricalStatsForAccount} from 'bungie-api-ts/destiny2';
+import {
+    type DestinyHistoricalStatsPeriodGroup,
+    type DestinyManifest,
+    getActivityHistory,
+    getDestinyManifestSlice,
+    getHistoricalStatsForAccount
+} from 'bungie-api-ts/destiny2';
 import {bungieClient} from "./bungieClient.ts";
-import type {DestinyHistoricalStatsPeriodGroup} from "bungie-api-ts/destiny2/interfaces";
+
 
 // convert to correct membership type
-const membershipTypes: {[id: string]: number} = {
+const membershipTypes: { [id: string]: number } = {
     "xb": 1,
     "ps": 2,
     "pc": 3,
     "stadia": 5,
     "egs": 6,
 }
-function convertMembershipType (membershipType: string | number): number {
+
+function convertMembershipType(membershipType: string | number): number {
     const err = new Error("Unknown MembershipType")
 
     if (membershipType in membershipTypes) {
         membershipType = membershipTypes[membershipType]
     } else if (typeof membershipType == "string") {
         try {
-           membershipType = parseInt(membershipType)
+            membershipType = parseInt(membershipType)
         } catch (e) {
             throw err
         }
     }
-    if (!(membershipType in [1,2,3,5,6])) {
+    if (!(membershipType in [1, 2, 3, 5, 6])) {
         throw err
     }
 
@@ -90,6 +97,77 @@ async function _getActivities(destinyMembershipId: string, membershipType: numbe
         page += 1
     }
 }
+
+
+export async function getManifestActivities(destinyManifest: DestinyManifest) {
+    const url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityDefinition"]
+    const r = await fetch(url)
+    const res = await r.json()
+
+    // only return the relevant data - otherwise it is too big
+    const data: {
+        [id: string]: {
+            name: string,
+            description: string,
+            destination: string,
+            imageUrl: string,
+            isPlaylist: boolean,
+            requirements: string[],
+            isMatchmade: boolean,
+            maxPlayers: number,
+            activityModeHashes: string,
+            activityModeTypes: string,
+            isPvp: boolean,
+            redacted: boolean,
+            blaclisted: boolean,
+        }
+    } = {}
+    for (const [key, value] of Object.entries(res)) {
+        if (typeof value === "object" && value !== null) {
+            const requirements: string[] = []
+            if (value.requirements) {
+                for (const [k, v] of Object.entries(value.requirements.leaderRequirementLabels)) {
+                    if (typeof v === "string") {
+                        requirements.push(v)
+                    }
+                }
+            }
+            let isMatchmade = false
+            let maxPlayers = -1
+            if (value.matchmaking) {
+                isMatchmade = value.matchmaking.isMatchmade
+                maxPlayers = value.matchmaking.maxPlayers
+            }
+            
+            data[key] = {
+                name: value.displayProperties.name,
+                description: value.displayProperties.description,
+                destination: value.destinationHash.toString(),
+                imageUrl: "https://www.bungie.net" + value.pgcrImage,
+                isPlaylist: value.isPlaylist,
+                requirements: requirements,
+                isMatchmade: isMatchmade,
+                maxPlayers: maxPlayers,
+                activityModeHashes: value.activityModeHashes,
+                activityModeTypes: value.activityModeTypes,
+                isPvp: value.isPvp,
+                redacted: value.redacted,
+                blaclisted: value.blaclisted,
+            }
+        }
+    }
+    return data
+
+    // const manifestTables = await getDestinyManifestSlice(bungieClient, {
+    //   destinyManifest: destinyManifest,
+    //   tableNames: ["DestinyActivityDefinition"],
+    //   language: "en",
+    // })
+    //
+    // // manifestTables is an object with properties DestinyActivityDefinition
+    // return manifestTables.DestinyActivityDefinition
+}
+
 
 
 
