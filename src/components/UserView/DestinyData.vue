@@ -5,6 +5,9 @@ import {useRoute} from "vue-router";
 import {useLocalStorage} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
+import Activity from "@/components/UserView/Activities/Activity.vue";
+import ActivitySearch from "@/components/UserView/Activities/ActivitySearch.vue";
+import {Separator} from "radix-vue";
 
 const route = useRoute()
 
@@ -17,16 +20,22 @@ const data = await getActivities(membershipId, membershipType)
 // make sure to check if the version changed - else do not re-download
 const destinyManifest = useLocalStorage("destinyManifest", {version: "empty", activities: {}})
 
-const manifest = await getDestinyManifest(bungieClient)
-if (manifest.Response.version != destinyManifest.value.version) {
-  destinyManifest.value.activities = await getManifestActivities(manifest.Response)
-  destinyManifest.value.version = manifest.Response.version
+if (!import.meta.env.DEV) {
+  const manifest = await getDestinyManifest(bungieClient)
+  if (manifest.Response.version != destinyManifest.value.version) {
+    destinyManifest.value.activities = await getManifestActivities(manifest.Response)
+    destinyManifest.value.version = manifest.Response.version
+  }
 }
 
 </script>
 
 <template>
-  <div>
-    {{data}}
+  <ActivitySearch/>
+  <Separator/>
+
+  <div class="grid grid-cols-4 gap-4">
+    <Activity :activities=data :manifest-activity="destinyManifest.activities['283043']"/>
   </div>
+
 </template>

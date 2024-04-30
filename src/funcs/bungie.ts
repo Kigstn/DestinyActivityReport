@@ -98,32 +98,37 @@ async function _getActivities(destinyMembershipId: string, membershipType: numbe
     }
 }
 
+export interface ManifestActivity {
+    name: string,
+    description: string,
+    destination: string,
+    imageUrl: string,
+    isPlaylist: boolean,
+    requirements: string[],
+    isMatchmade: boolean,
+    maxPlayers: number,
+    activityMode: string,
+    isPvp: boolean,
+    redacted: boolean,
+    blaclisted: boolean,
+}
 
 export async function getManifestActivities(destinyManifest: DestinyManifest) {
-    const url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityDefinition"]
-    const r = await fetch(url)
+    // get the activity mode defintions - we need them for tags
+    let url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityTypeDefinition"]
+    let r = await fetch(url)
+    const manifestActivityTypes = await r.json()
+
+    // get the activities
+    url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityDefinition"]
+    r = await fetch(url)
     const res = await r.json()
 
     // only return the relevant data - otherwise it is too big
-    const data: {
-        [id: string]: {
-            name: string,
-            description: string,
-            destination: string,
-            imageUrl: string,
-            isPlaylist: boolean,
-            requirements: string[],
-            isMatchmade: boolean,
-            maxPlayers: number,
-            activityModeHashes: string,
-            activityModeTypes: string,
-            isPvp: boolean,
-            redacted: boolean,
-            blaclisted: boolean,
-        }
-    } = {}
+    const data: { [id: string]: ManifestActivity } = {}
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
+            console.log(value)
             const requirements: string[] = []
             if (value.requirements) {
                 for (const [k, v] of Object.entries(value.requirements.leaderRequirementLabels)) {
@@ -133,12 +138,16 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 }
             }
             let isMatchmade = false
-            let maxPlayers = -1
+            let maxPlayers = 0
             if (value.matchmaking) {
                 isMatchmade = value.matchmaking.isMatchmade
                 maxPlayers = value.matchmaking.maxPlayers
             }
-            
+            let activityMode = "REDACTED"
+            if (value.activityTypeHash) {
+                activityMode = manifestActivityTypes[value.activityTypeHash].displayProperties.name
+            }
+
             data[key] = {
                 name: value.displayProperties.name,
                 description: value.displayProperties.description,
@@ -148,8 +157,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 requirements: requirements,
                 isMatchmade: isMatchmade,
                 maxPlayers: maxPlayers,
-                activityModeHashes: value.activityModeHashes,
-                activityModeTypes: value.activityModeTypes,
+                activityMode: activityMode,
                 isPvp: value.isPvp,
                 redacted: value.redacted,
                 blaclisted: value.blaclisted,
@@ -157,15 +165,6 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
         }
     }
     return data
-
-    // const manifestTables = await getDestinyManifestSlice(bungieClient, {
-    //   destinyManifest: destinyManifest,
-    //   tableNames: ["DestinyActivityDefinition"],
-    //   language: "en",
-    // })
-    //
-    // // manifestTables is an object with properties DestinyActivityDefinition
-    // return manifestTables.DestinyActivityDefinition
 }
 
 
