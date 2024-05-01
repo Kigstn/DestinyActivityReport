@@ -13,11 +13,12 @@ const membershipId = route.params.membershipId
 
 
 <template>
-  <div>
+  <div class="p-4">
     membershipType {{ membershipType }}
     membershipId {{ membershipId }}
   </div>
 
+  <div class="p-4">
   <Suspense>
     <!-- main content -->
     <DestinyData/>
@@ -27,4 +28,5 @@ const membershipId = route.params.membershipId
       Loading...
     </template>
   </Suspense>
+  </div>
 </template>

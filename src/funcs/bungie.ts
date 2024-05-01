@@ -104,13 +104,12 @@ export interface ManifestActivity {
     destination: string,
     imageUrl: string,
     isPlaylist: boolean,
-    requirements: string[],
     isMatchmade: boolean,
     maxPlayers: number,
     activityMode: string,
     isPvp: boolean,
     redacted: boolean,
-    blaclisted: boolean,
+    blacklisted: boolean,
 }
 
 export async function getManifestActivities(destinyManifest: DestinyManifest) {
@@ -128,15 +127,15 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     const data: { [id: string]: ManifestActivity } = {}
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
-            console.log(value)
-            const requirements: string[] = []
-            if (value.requirements) {
-                for (const [k, v] of Object.entries(value.requirements.leaderRequirementLabels)) {
-                    if (typeof v === "string") {
-                        requirements.push(v)
-                    }
+            // get the correct name - this is a bit tricky, since we want to group some activities
+            // also for some activities, the display name sucks hard (looking at you deep dives)
+            let name = value.displayProperties.name
+            if (value.selectionScreenDisplayProperties) {
+                if (value.selectionScreenDisplayProperties.name.includes(value.originalDisplayProperties.name)) {
+                    name = value.selectionScreenDisplayProperties.name
                 }
             }
+
             let isMatchmade = false
             let maxPlayers = 0
             if (value.matchmaking) {
@@ -149,18 +148,17 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
             }
 
             data[key] = {
-                name: value.displayProperties.name,
+                name: name,
                 description: value.displayProperties.description,
                 destination: value.destinationHash.toString(),
                 imageUrl: "https://www.bungie.net" + value.pgcrImage,
                 isPlaylist: value.isPlaylist,
-                requirements: requirements,
                 isMatchmade: isMatchmade,
                 maxPlayers: maxPlayers,
                 activityMode: activityMode,
                 isPvp: value.isPvp,
                 redacted: value.redacted,
-                blaclisted: value.blaclisted,
+                blacklisted: value.blaclisted,
             }
         }
     }

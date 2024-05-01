@@ -13,10 +13,11 @@ import {
 } from "radix-vue";
 import {Icon} from "@iconify/vue";
 import {ref} from "vue";
-import BoxWithBackground from "@/components/BoxWithBackground.vue";
+import Tag from "@/components/Tag.vue";
 import Clears from "@/components/UserView/Activities/Clears.vue";
 import TimeSpent from "@/components/UserView/Activities/TimeSpent.vue";
-import BoxClickable from "@/components/BoxClickable.vue";
+import BoxClickable from "@/components/TagClickable.vue";
+import ClearMarkers from "@/components/UserView/Activities/ClearMarkers/ClearMarkers.vue";
 
 const props = defineProps<{
   manifestActivity: ManifestActivity,
@@ -24,12 +25,106 @@ const props = defineProps<{
 }>()
 
 const toggleState = ref(false)
+
+
+const activities = [
+  {
+    datetime: new Date(),
+    lengthSeconds: 1633,
+    completed: true,
+    special: false,
+  },
+  {
+    datetime: new Date(1995, 11, 17),
+    lengthSeconds: 400,
+    completed: false,
+    special: false,
+  },
+  {
+    datetime: new Date(1990, 11, 17),
+    lengthSeconds: 600,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1985, 11, 1),
+    lengthSeconds: 5000,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1994, 11, 17),
+    lengthSeconds: 12,
+    completed: true,
+    special: false,
+  },
+    {
+    datetime: new Date(),
+    lengthSeconds: 1633,
+    completed: true,
+    special: false,
+  },
+  {
+    datetime: new Date(1995, 11, 17),
+    lengthSeconds: 400,
+    completed: false,
+    special: false,
+  },
+  {
+    datetime: new Date(1990, 11, 17),
+    lengthSeconds: 600,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1985, 11, 1),
+    lengthSeconds: 5000,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1994, 11, 17),
+    lengthSeconds: 12,
+    completed: true,
+    special: false,
+  },
+    {
+    datetime: new Date(),
+    lengthSeconds: 1633,
+    completed: true,
+    special: false,
+  },
+  {
+    datetime: new Date(1995, 11, 17),
+    lengthSeconds: 400,
+    completed: false,
+    special: false,
+  },
+  {
+    datetime: new Date(1990, 11, 17),
+    lengthSeconds: 600,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1985, 11, 1),
+    lengthSeconds: 5000,
+    completed: true,
+    special: true,
+  },
+  {
+    datetime: new Date(1994, 11, 17),
+    lengthSeconds: 12,
+    completed: true,
+    special: false,
+  }
+]
 </script>
 
 <template>
-  <div class="flex flex-col border-2 border-border rounded-lg bg-bg_box">
+  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-bg_box w-80">
     <div class="">
-      <div class="h-40 relative">
+      <div class="h-48 relative">
         <img
             class="h-full w-full rounded-t-lg object-cover "
             :src=props.manifestActivity.imageUrl
@@ -38,13 +133,13 @@ const toggleState = ref(false)
 
         <!-- todo -->
         <!-- Pin it -->
-        <div class="absolute top-1 right-1">
+        <div class="absolute top-2 right-2">
           <TooltipProvider>
             <TooltipRoot>
               <TooltipTrigger>
                 <Toggle
                     v-model:pressed="toggleState" aria-label="Pin Item"
-                    class="bg-accent hover:bg-accent/80 text-text_bright data-[state=on]:border-2 data-[state=on]:border-text_bright flex items-center justify-center rounded-lg w-8 h-8"
+                    class="clickable data-[state=on]:border-2 data-[state=on]:border-text_bright flex items-center justify-center rounded-lg w-8 h-8"
                 >
                   <svg v-if="toggleState" width="20" height="20" viewBox="0 0 15 15" fill="none"
                        xmlns="http://www.w3.org/2000/svg">
@@ -77,44 +172,42 @@ const toggleState = ref(false)
               </TooltipPortal>
             </TooltipRoot>
           </TooltipProvider>
-
-
         </div>
 
-        <div class="absolute top-1 left-1 space-y-1">
+        <div class="absolute top-2 left-2 space-y-1">
           <!-- Activity Name -->
-          <BoxWithBackground class="font-extrabold text-xl">
+          <div class="text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-72">
             {{ props.manifestActivity.name }}
-          </BoxWithBackground>
+          </div>
 
           <!-- todo maybe icon of mode - if exists -->
           <!-- Activity Mode -->
-          <BoxWithBackground class="text-sm font-medium">
+          <div class="text-sm font-medium text-shadow shadow-bg_box">
             {{ props.manifestActivity.activityMode }}
-          </BoxWithBackground>
+          </div>
         </div>
 
         <!-- Small Info -->
-        <div class="absolute bottom-1 right-1">
+        <div class="absolute bottom-1 right-2">
           <div class="flex space-x-1">
-            <BoxWithBackground class="text-xs" v-if=props.manifestActivity.isPlaylist>
+            <Tag class="text-xs" v-if=props.manifestActivity.isPlaylist>
               Playlist
-            </BoxWithBackground>
+            </Tag>
 
-            <BoxWithBackground class="text-xs" v-if=props.manifestActivity.isMatchmade>
+            <Tag class="text-xs" v-if=props.manifestActivity.isMatchmade>
               Matchmade
-            </BoxWithBackground>
+            </Tag>
 
-            <BoxWithBackground class="text-xs">
+            <Tag class="text-xs">
               {{ props.manifestActivity.maxPlayers }} Players
-            </BoxWithBackground>
+            </Tag>
           </div>
         </div>
       </div>
 
       <!-- todo -->
       <!-- Tags -->
-      <div class="h-8 flex space-x-1 p-1">
+      <div class="h-8 flex space-x-1 py-1 px-2">
         <button>
           <BoxClickable class="">
             Solo
@@ -128,14 +221,12 @@ const toggleState = ref(false)
         </button>
       </div>
 
-      <div class="flex flex-col divide-y px-4">
-        <div class="pb-4 flex flex-col justify-center">
-          <div class="h-24 row-span-2 justify-center flex flex-col bg-green-400">
+      <div class="flex flex-col divide-y px-4 divide-text_dull/70">
+        <div class="pb-4 flex flex-col">
+          <div class="h-24 row-span-2">
             <!-- todo -->
             <!-- Clear Markers -->
-            <div class="self-center">
-              << Clear Markers >>
-            </div>
+            <ClearMarkers :activities="activities"/>
           </div>
 
           <!-- todo -->
@@ -180,11 +271,13 @@ const toggleState = ref(false)
     </div>
 
     <!-- todo -->
-    <div class="h-8 flex justify-end pr-1 pb-1">
-      <button>
-        <BoxClickable>
-          Show more...
-        </BoxClickable>
+    <div class="flex justify-end pr-2 pb-2">
+      <button class="clickable flex items-center justify-center rounded-lg w-8 h-8">
+        <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+              d="M14 7.5C14 7.66148 13.922 7.81301 13.7906 7.90687L6.79062 12.9069C6.63821 13.0157 6.43774 13.0303 6.27121 12.9446C6.10467 12.8589 6 12.6873 6 12.5L6 10L3.5 10C3.22386 10 3 9.77614 3 9.5L3 5.5C3 5.22386 3.22386 5 3.5 5L6 5L6 2.5C6 2.31271 6.10467 2.14112 6.27121 2.05542C6.43774 1.96972 6.63821 1.98427 6.79062 2.09313L13.7906 7.09314C13.922 7.18699 14 7.33853 14 7.5ZM7 3.4716L7 5.5C7 5.77614 6.77614 6 6.5 6L4 6L4 9L6.5 9C6.77614 9 7 9.22386 7 9.5L7 11.5284L12.6398 7.5L7 3.4716Z"
+              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+        </svg>
       </button>
     </div>
   </div>

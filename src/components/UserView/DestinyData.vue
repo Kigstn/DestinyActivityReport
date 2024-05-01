@@ -32,7 +32,7 @@ if (!import.meta.env.DEV) {
 
 <template>
   <ActivitySearch/>
-  <Separator/>
+  <Separator class="p-4"/>
 
   <div class="grid grid-cols-4 gap-4">
     <Activity :activities=data :manifest-activity="destinyManifest.activities['283043']"/>
