@@ -12,113 +12,66 @@ import {
   TooltipTrigger
 } from "radix-vue";
 import {Icon} from "@iconify/vue";
-import {ref} from "vue";
+import {reactive, ref} from "vue";
 import Tag from "@/components/Tag.vue";
 import Clears from "@/components/UserView/Activities/Clears.vue";
 import TimeSpent from "@/components/UserView/Activities/TimeSpent.vue";
 import BoxClickable from "@/components/TagClickable.vue";
-import ClearMarkers from "@/components/UserView/Activities/ClearMarkers/ClearMarkers.vue";
+import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
+import {type PlayedActivities} from "@/funcs/bungie";
+import {formatTime} from "@/funcs/utils";
 
 const props = defineProps<{
   manifestActivity: ManifestActivity,
-  activities: DestinyHistoricalStatsPeriodGroup[]
+  activities: PlayedActivities[] | undefined
 }>()
 
 const toggleState = ref(false)
 
 
-const activities = [
-  {
-    datetime: new Date(),
-    lengthSeconds: 1633,
-    completed: true,
-    special: false,
-  },
-  {
-    datetime: new Date(1995, 11, 17),
-    lengthSeconds: 400,
-    completed: false,
-    special: false,
-  },
-  {
-    datetime: new Date(1990, 11, 17),
-    lengthSeconds: 600,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1985, 11, 1),
-    lengthSeconds: 5000,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1994, 11, 17),
-    lengthSeconds: 12,
-    completed: true,
-    special: false,
-  },
-    {
-    datetime: new Date(),
-    lengthSeconds: 1633,
-    completed: true,
-    special: false,
-  },
-  {
-    datetime: new Date(1995, 11, 17),
-    lengthSeconds: 400,
-    completed: false,
-    special: false,
-  },
-  {
-    datetime: new Date(1990, 11, 17),
-    lengthSeconds: 600,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1985, 11, 1),
-    lengthSeconds: 5000,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1994, 11, 17),
-    lengthSeconds: 12,
-    completed: true,
-    special: false,
-  },
-    {
-    datetime: new Date(),
-    lengthSeconds: 1633,
-    completed: true,
-    special: false,
-  },
-  {
-    datetime: new Date(1995, 11, 17),
-    lengthSeconds: 400,
-    completed: false,
-    special: false,
-  },
-  {
-    datetime: new Date(1990, 11, 17),
-    lengthSeconds: 600,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1985, 11, 1),
-    lengthSeconds: 5000,
-    completed: true,
-    special: true,
-  },
-  {
-    datetime: new Date(1994, 11, 17),
-    lengthSeconds: 12,
-    completed: true,
-    special: false,
+// calculate with the activities for this
+let activityClears = 0
+let activitySpecial = 0
+let activityKills = 0
+let activityAssists = 0
+let activityDeaths = 0
+let activitySpecials: { [id: string]: number } = {}
+const activityTimes: number[] = []
+if (props.activities) {
+  for (const x of props.activities) {
+    activityKills += x.values.kills.basic.value
+    activityAssists += x.values.assists.basic.value
+    activityDeaths += x.values.deaths.basic.value
+
+    if (x.completed) {
+      activityTimes.push(x.lengthSeconds)
+    }
+    if (x.specialTags) {
+      activitySpecial += 1
+      for (const specialTag of x.specialTags) {
+        if (!(specialTag in activitySpecials)) {
+          activitySpecials[specialTag] = 0
+        }
+        activitySpecials[specialTag] += 1
+      }
+    }
+    if (x.completed) {
+      activityClears += 1
+    }
   }
-]
+}
+let activityTimeMax: number | null = null
+let activityTimeMin: number | null = null
+let activityTimeAvg: number | null = null
+let activityTimeSum = 0
+if (activityTimes.length != 0) {
+  for (let i = 0; i < activityTimes.length; i++) {
+    activityTimeSum += activityTimes[i];
+  }
+  activityTimeMax = Math.max(...activityTimes)
+  activityTimeMin = Math.min(...activityTimes)
+  activityTimeAvg = activityTimeSum / activityTimes.length
+}
 </script>
 
 <template>
@@ -176,7 +129,7 @@ const activities = [
 
         <div class="absolute top-2 left-2 space-y-1">
           <!-- Activity Name -->
-          <div class="text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-72">
+          <div class="text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-64">
             {{ props.manifestActivity.name }}
           </div>
 
@@ -205,80 +158,91 @@ const activities = [
         </div>
       </div>
 
-      <!-- todo -->
+      <!-- todo amount as hover -->
       <!-- Tags -->
       <div class="h-8 flex space-x-1 py-1 px-2">
-        <button>
-          <BoxClickable class="">
-            Solo
-          </BoxClickable>
-        </button>
-
-        <button>
-          <BoxClickable class="">
-            Solo
+        <button v-for="(amount, name) in activitySpecials">
+          <BoxClickable>
+            {{ name }}
           </BoxClickable>
         </button>
       </div>
 
-      <div class="flex flex-col divide-y px-4 divide-text_dull/70">
+      <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
         <div class="pb-4 flex flex-col">
           <div class="h-24 row-span-2">
-            <!-- todo -->
             <!-- Clear Markers -->
-            <ClearMarkers :activities="activities"/>
+            <ClearMarkers :activities="activities" v-if="activities"/>
+            <div v-else class="justify-center font-medium italic text-sm text-text_dull flex h-full">
+              <div class="flex flex-col justify-center h-full">
+                You have never run this
+              </div>
+            </div>
           </div>
 
-          <!-- todo -->
           <!-- Clears -->
           <div class="place-content-center grid grid-cols-2 space-x-2">
-            <Clears :amount=5 name="Full Clears"/>
-            <Clears :amount=1012 name="Checkpoints"/>
+            <Clears :amount="activityClears" name="Full Clears"/>
+            <Clears :amount="activitySpecial" name="Special Clears"/>
           </div>
         </div>
 
-        <div class="py-4 grid grid-cols-3 place-content-center space-x-2">
-          <!-- todo -->
+        <div v-if="activityTimes" class="py-4 grid grid-cols-3 place-content-center space-x-2">
           <!-- Fastest Clear -->
-          <TimeSpent amount="2h 14m" name="Fastest"/>
+          <TimeSpent :amount="formatTime(activityTimeMin)" name="Fastest"/>
 
-          <!-- todo -->
           <!-- Average Clear -->
-          <TimeSpent amount="1h 14m" name="Average"/>
+          <TimeSpent :amount="formatTime(activityTimeAvg)" name="Average"/>
 
-          <!-- todo -->
           <!-- Total Time Spent -->
-          <TimeSpent amount="2d 7h" name="Total"/>
+          <TimeSpent :amount="formatTime(activityTimeSum)" name="Total"/>
+        </div>
+
+        <div v-else class="py-4 grid grid-cols-3 place-content-center space-x-2">
+          <!-- Fastest Clear -->
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
+
+          <!-- Average Clear -->
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
+
+          <!-- Total Time Spent -->
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
         </div>
 
         <div class="py-4 grid grid-cols-3 place-content-center space-x-2">
-          <!-- todo -->
           <!-- Kills -->
-          <TimeSpent amount="15224" name="Kills"/>
+          <TimeSpent :amount="activityKills" name="Kills"/>
 
-          <!-- todo -->
           <!-- Assists -->
-          <TimeSpent amount="420" name="Assists"/>
+          <TimeSpent :amount="activityAssists" name="Assists"/>
 
-          <!-- todo -->
           <!-- Deaths -->
-          <TimeSpent amount="0" name="Deaths"/>
+          <TimeSpent :amount="activityDeaths" name="Deaths"/>
         </div>
-
       </div>
-
-
     </div>
 
-    <!-- todo -->
-    <div class="flex justify-end pr-2 pb-2">
-      <button class="clickable flex items-center justify-center rounded-lg w-8 h-8">
-        <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-              d="M14 7.5C14 7.66148 13.922 7.81301 13.7906 7.90687L6.79062 12.9069C6.63821 13.0157 6.43774 13.0303 6.27121 12.9446C6.10467 12.8589 6 12.6873 6 12.5L6 10L3.5 10C3.22386 10 3 9.77614 3 9.5L3 5.5C3 5.22386 3.22386 5 3.5 5L6 5L6 2.5C6 2.31271 6.10467 2.14112 6.27121 2.05542C6.43774 1.96972 6.63821 1.98427 6.79062 2.09313L13.7906 7.09314C13.922 7.18699 14 7.33853 14 7.5ZM7 3.4716L7 5.5C7 5.77614 6.77614 6 6.5 6L4 6L4 9L6.5 9C6.77614 9 7 9.22386 7 9.5L7 11.5284L12.6398 7.5L7 3.4716Z"
-              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-        </svg>
-      </button>
-    </div>
+<!--    &lt;!&ndash; todo &ndash;&gt;-->
+<!--    <div class="flex justify-end pr-2 pb-2">-->
+<!--      <button class="clickable flex items-center justify-center rounded-lg w-8 h-8">-->
+<!--        <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path-->
+<!--              d="M14 7.5C14 7.66148 13.922 7.81301 13.7906 7.90687L6.79062 12.9069C6.63821 13.0157 6.43774 13.0303 6.27121 12.9446C6.10467 12.8589 6 12.6873 6 12.5L6 10L3.5 10C3.22386 10 3 9.77614 3 9.5L3 5.5C3 5.22386 3.22386 5 3.5 5L6 5L6 2.5C6 2.31271 6.10467 2.14112 6.27121 2.05542C6.43774 1.96972 6.63821 1.98427 6.79062 2.09313L13.7906 7.09314C13.922 7.18699 14 7.33853 14 7.5ZM7 3.4716L7 5.5C7 5.77614 6.77614 6 6.5 6L4 6L4 9L6.5 9C6.77614 9 7 9.22386 7 9.5L7 11.5284L12.6398 7.5L7 3.4716Z"-->
+<!--              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </div>-->
   </div>
 </template>

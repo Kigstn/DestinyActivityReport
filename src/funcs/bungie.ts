@@ -38,6 +38,13 @@ function convertMembershipType(membershipType: string | number): number {
 
 // ---
 
+export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
+    datetime: Date,
+    completed: boolean,
+    lengthSeconds: number,
+    specialTags: string[]
+}
+
 export async function getActivities(destinyMembershipId: any, membershipType: any) {
     membershipType = convertMembershipType(membershipType)
 
@@ -47,7 +54,7 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
     if (import.meta.env.DEV) {
         console.log("DEV: Running with hardcoded destiny data")
         await _getActivities("4611686018467765462", 3, "2305843009302043968", data)
-        return data
+        return _calcExtras(data)
     }
 
     // get character ids and gen functions
@@ -65,7 +72,53 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
     // call the all in parallel
     await Promise.all(funcs)
 
-    return data
+    return _calcExtras(data)
+}
+
+function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
+    // do the calculations we need on it
+    const finalEntries: PlayedActivities[] = []
+    for (const _entry of data) {
+        const entry = _entry as PlayedActivities
+        entry.datetime = new Date(entry.period)
+        const completed = entry.values.completed.basic.value == 1 && entry.values.completionReason.basic.value == 0
+        entry.completed = completed
+        entry.lengthSeconds = entry.values.activityDurationSeconds.basic.value
+
+        // special clear?
+        entry.specialTags = []
+        if (completed) {
+            const playerCount = entry.values.playerCount.basic.value
+            const flawless = entry.values.deaths.basic.value
+
+            if (playerCount == 1 && flawless) {
+                entry.specialTags.push("Solo Flawless")
+            } else if (flawless) {
+                entry.specialTags.push("Personal Flawless")
+            } else if (playerCount == 1) {
+                entry.specialTags.push("Solo")
+            }
+
+            // special behaviour for raids
+            if (entry.activityDetails.mode == 4) {
+                if (playerCount == 2) {
+                    entry.specialTags.push("Duo")
+                } else if (playerCount == 3) {
+                    entry.specialTags.push("Trio")
+                }
+            }
+
+            // special behaviour for dungeons
+            if (entry.activityDetails.mode == 82) {
+                if (playerCount == 2) {
+                    entry.specialTags.push("Duo")
+                }
+            }
+        }
+        finalEntries.push(entry)
+    }
+
+    return finalEntries
 }
 
 async function _getActivities(destinyMembershipId: string, membershipType: number, characterId: string, data: DestinyHistoricalStatsPeriodGroup[]) {

@@ -14,10 +14,10 @@
       <div class="flex flex-col font-medium italic text-sm text-text_dull justify-between">
         <!-- todo -->
         <p>
-          Max Time
+          {{ maxTime }}
         </p>
-        <p>
-          Min Time
+        <p v-if="maxTime != minTime">
+          {{ minTime }}
         </p>
       </div>
     </div>
@@ -35,6 +35,7 @@ import {
   LineElement
 } from 'chart.js'
 import annotationPlugin from 'chartjs-plugin-annotation';
+import {formatTime} from "@/funcs/utils";
 
 ChartJS.register(annotationPlugin);
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
@@ -45,7 +46,7 @@ export default {
   //   datetime: Date,
   //   lengthSeconds: number,
   //   completed: boolean,
-  //   special: boolean,
+  //   specialTags: boolean,
   // }]
   props: ["activities"],
 
@@ -68,28 +69,33 @@ export default {
 
     let i = 0
     let vals = []
+    let valsTranslation: { [id: string]: {}} = {}
     for (const x of sortable) {
       const info: any = x[1]
       vals.push(info.lengthSeconds)
 
       if (info.completed) {
-        if (info.special) {
+        if (info.specialTags) {
+          info["label"] = "Special Clear"
           special.push({
             x: i,
             y: info.lengthSeconds
           })
         } else {
+          info["label"] = "Successful Clear"
           success.push({
             x: i,
             y: info.lengthSeconds
           })
         }
       } else {
+        info["label"] = "Failed Clear"
         fail.push({
           x: i,
           y: info.lengthSeconds
         })
       }
+      valsTranslation[i + "," + info.lengthSeconds] = info
 
       i += 1
 
@@ -97,6 +103,10 @@ export default {
         break
       }
     }
+
+    // calc max / min
+    const max = Math.max(...vals)
+    const min = Math.min(...vals)
 
     // calc average
     let sum = 0;
@@ -111,7 +121,16 @@ export default {
       value: sum / vals.length
     }
 
+    // func to overwrite the default tooltip
+    function genTooltip (tooltipItems: any) {
+      const info = valsTranslation[tooltipItems.parsed.x + "," + tooltipItems.parsed.y]
+      return [info.label, formatTime(info.lengthSeconds), info.datetime.toLocaleString()]
+    }
+
     return {
+      maxTime: formatTime(max),
+      minTime: formatTime(min),
+      valsTranslation: valsTranslation,
       chartData: {
         datasets: [
           {
@@ -121,13 +140,13 @@ export default {
             data: special
           },
           {
-            label: "Success",
+            label: "Successful",
             fill: true,
             backgroundColor: "#008080",
             data: success
           },
           {
-            label: "Fail",
+            label: "Failed",
             fill: true,
             backgroundColor: "#E54D2E",
             data: fail
@@ -146,6 +165,11 @@ export default {
             }
         ,
         plugins: {
+          tooltip: {
+            callbacks: {
+              label: genTooltip,
+            }
+          },
           legend: {
             display: false
           }
@@ -192,7 +216,5 @@ export default {
     }
   }
 }
-// const canvas: any = document.getElementById("my-chart-id")
-// canvas.style.width = props.activities.length * 40
 </script>
 

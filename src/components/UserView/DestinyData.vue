@@ -28,6 +28,19 @@ if (!import.meta.env.DEV) {
   }
 }
 
+// sort data by activities
+const dataByActivities: {[id: string]: {}[]} = {}
+for (const entry of data) {
+  if (!(entry.activityDetails.referenceId in dataByActivities)) {
+    dataByActivities[entry.activityDetails.referenceId] = []
+  }
+  dataByActivities[entry.activityDetails.referenceId].push(entry)
+}
+
+
+// const MYID = '283043'
+const MYID = '28778404'
+
 </script>
 
 <template>
@@ -35,7 +48,7 @@ if (!import.meta.env.DEV) {
   <Separator class="p-4"/>
 
   <div class="grid grid-cols-4 gap-4">
-    <Activity :activities=data :manifest-activity="destinyManifest.activities['283043']"/>
+    <Activity :activities="dataByActivities[MYID]" :manifest-activity="destinyManifest.activities[MYID]"/>
   </div>
 
 </template>
