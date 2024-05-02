@@ -152,6 +152,7 @@ async function _getActivities(destinyMembershipId: string, membershipType: numbe
 }
 
 export interface ManifestActivity {
+    hash: string,
     name: string,
     description: string,
     destination: string,
@@ -166,10 +167,14 @@ export interface ManifestActivity {
 }
 
 export async function getManifestActivities(destinyManifest: DestinyManifest) {
-    // get the activity mode defintions - we need them for tags
+    // get the activity mode + type defintions - we need them for tags
     let url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityTypeDefinition"]
     let r = await fetch(url)
     const manifestActivityTypes = await r.json()
+
+    url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityModeDefinition"]
+    r = await fetch(url)
+    const manifestActivityModes = await r.json()
 
     // get the activities
     url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityDefinition"]
@@ -188,6 +193,9 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     name = value.selectionScreenDisplayProperties.name
                 }
             }
+            if (name == "") {
+                continue
+            }
 
             let isMatchmade = false
             let maxPlayers = 0
@@ -199,8 +207,12 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
             if (value.activityTypeHash) {
                 activityMode = manifestActivityTypes[value.activityTypeHash].displayProperties.name
             }
+            if (activityMode == "") {
+                activityMode = manifestActivityModes[value.directActivityModeHash].displayProperties.name
+            }
 
             data[key] = {
+                hash: key,
                 name: name,
                 description: value.displayProperties.description,
                 destination: value.destinationHash.toString(),
@@ -209,13 +221,39 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 isMatchmade: isMatchmade,
                 maxPlayers: maxPlayers,
                 activityMode: activityMode,
-                isPvp: value.isPvp,
+                isPvp: value.isPvP,
                 redacted: value.redacted,
-                blacklisted: value.blaclisted,
+                blacklisted: value.blacklisted,
             }
         }
     }
-    return data
+
+    // sort them by mode and then by name
+    const partlySorted = Object.entries(data).sort((a, b) => {
+            if (a[1].activityMode > b[1].activityMode) {
+                return 1
+            } else if (a[1].activityMode == b[1].activityMode) {
+                return 0
+            } else {
+                return -1
+            }
+        }
+    )
+    // if mode is same check name
+    return partlySorted.sort((a, b) => {
+        // check mode - if same check name
+        if (a[1].activityMode == b[1].activityMode) {
+            if (a[1].activityMode > b[1].activityMode) {
+                return 1
+            } else if (a[1].activityMode == b[1].activityMode) {
+                return 0
+            } else {
+                return -1
+            }
+        } else {
+            return -1
+        }
+    })
 }
 
 
