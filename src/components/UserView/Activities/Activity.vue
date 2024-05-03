@@ -113,7 +113,7 @@ if (activityTimes.length != 0) {
                 </Toggle>
               </TooltipTrigger>
               <TooltipPortal>
-                <TooltipContent class="bg-text_bright text-accent rounded-lg p-2 font-bold">
+                <TooltipContent class="tooltip">
                   <p v-if="toggleState">
                     Unpin
                   </p>
