@@ -4,8 +4,17 @@
 
 
 @layer utilities {
+    .activities_scrollable {
+        /*
+            height for:
+            topic_bar (12), topic_bar_margin (4)
+         */
+        height: calc(100% - 3rem - 1rem);
+        @apply w-full grow-0 overflow-y-auto
+    }
+
     .clickable {
-        @apply bg-accent hover:bg-accent/80 text-text_normal hover:text-text_normal/80 font-bold;
+        @apply bg-accent hover:bg-accent/80 text-text_normal hover:text-text_normal/80 font-bold rounded-lg data-[state=on]:border-2 data-[state=on]:border-text_bright data-[state=active]:border-2 data-[state=active]:border-text_bright;
     }
 
     .tooltip {

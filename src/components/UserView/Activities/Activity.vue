@@ -13,10 +13,10 @@ import {
 } from "radix-vue";
 import {Icon} from "@iconify/vue";
 import {reactive, ref} from "vue";
-import Tag from "@/components/Tag.vue";
+import Tag from "@/components/UserView/Tag.vue";
 import Clears from "@/components/UserView/Activities/Clears.vue";
 import TimeSpent from "@/components/UserView/Activities/TimeSpent.vue";
-import BoxClickable from "@/components/TagClickable.vue";
+import BoxClickable from "@/components/UserView/TagClickable.vue";
 import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import {type PlayedActivities} from "@/funcs/bungie";
 import {formatTime} from "@/funcs/utils";
@@ -92,7 +92,7 @@ if (activityTimes.length != 0) {
               <TooltipTrigger>
                 <Toggle
                     v-model:pressed="toggleState" aria-label="Pin Item"
-                    class="clickable data-[state=on]:border-2 data-[state=on]:border-text_bright flex items-center justify-center rounded-lg w-8 h-8"
+                    class="clickable flex items-center justify-center w-8 h-8"
                 >
                   <svg v-if="toggleState" width="20" height="20" viewBox="0 0 15 15" fill="none"
                        xmlns="http://www.w3.org/2000/svg">
