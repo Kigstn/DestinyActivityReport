@@ -2,15 +2,14 @@
 
 import {getActivities, getManifestActivities} from "@/funcs/bungie";
 import {useRoute} from "vue-router";
-import {useLocalStorage} from "@vueuse/core";
-import {vInfiniteScroll} from '@vueuse/components'
+import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import ActivityFilter from "@/components/UserView/Activities/ActivityFilter.vue";
 import {CollapsibleContent, CollapsibleRoot, Separator} from "radix-vue";
 import {TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger} from 'radix-vue'
-import {ref} from "vue";
+import {reactive, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
 import TopicBarNEW from "@/components/UserView/TopicBar-NEW.vue";
 
@@ -48,15 +47,33 @@ let i = 0
 for (const entry of destinyManifest.value.activities) {
   i += 1
 
-  if (i > 24) {
+  if (i > 12) {
     loadingData.push(entry)
   } else {
     initialData.value.push(entry)
   }
 }
 
+// read the window position
+const {x, y} = useWindowScroll()
+const activitiesDiv = ref(null)
+const activitiesDivSize = reactive(useElementSize(activitiesDiv))
+const cutoffHeight = 2000
+let currentlyLoadingMore = false
+
+watch(y, async (newY, oldY) => {
+  if (!currentlyLoadingMore) {
+    if (newY > oldY) {
+      if ((newY + cutoffHeight) >= activitiesDivSize.height) {
+        onLoadMore()
+      }
+    }
+  }
+})
+
 function onLoadMore() {
   // load more
+  currentlyLoadingMore = true
   for (let j = 1; j <= 4; j++) {
     const entry: any = loadingData.shift()
     if (entry == undefined) {
@@ -64,17 +81,18 @@ function onLoadMore() {
     }
     initialData.value.push(entry)
   }
+  currentlyLoadingMore = false
 }
 </script>
 
 <template>
-  <div class="flex w-full justify-around">
+  <div class="flex w-full justify-around h-full">
     <div class="shrink ">
       filter
     </div>
 
     <div class="flex flex-col max-w-[1600px]">
-      <TabsRoot class="flex flex-col w-full h-full" default-value="Pinned">
+      <TabsRoot class="flex flex-col w-full" default-value="Pinned">
         <TabsList class="flex gap-4" aria-label="Show pinned or all activities">
           <TopicBarNEW name="Pinned">
             <svg width="30" height="30" viewBox="0 0 15 15" fill="none"
@@ -97,10 +115,10 @@ function onLoadMore() {
           </TopicBarNEW>
         </TabsList>
 
-        <TabsContent class="flex flex-col h-full" value="Pinned">
+        <TabsContent class="flex flex-col" value="Pinned">
           <!-- Activities -->
           <div
-              v-infinite-scroll="[onLoadMore, { distance: 10 }]"
+              ref="activitiesDiv"
               class="w-full"
           >
             <div class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
