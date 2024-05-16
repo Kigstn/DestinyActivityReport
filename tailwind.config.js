@@ -8,6 +8,9 @@ module.exports = {
     ],
     theme: {
         extend: {
+            screens: {
+                '3xl': '1700px',
+            },
             colors: {
                 /** https://www.radix-ui.com/colors/custom -> accent: 008080 | gray: 8B8D98 | background: 111111 */
                 bg_site: "#0A1313",
