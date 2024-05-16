@@ -75,7 +75,7 @@ if (activityTimes.length != 0) {
 </script>
 
 <template>
-  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-bg_box w-80" :id="manifestActivity.hash">
+  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80" :id="manifestActivity.hash.toString()">
     <div class="">
       <div class="h-48 relative">
         <img

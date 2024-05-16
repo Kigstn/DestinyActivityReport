@@ -15,8 +15,8 @@ function searchUser() {
 </script>
 
 <template>
-  <div class="h-dvh flex flex-col">
-    <header class="w-screen bg-text_bright flex justify-center">
+  <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site">
+    <header class="w-screen bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-50">
       <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-6">
         <RouterLink to="/" class="flex gap-4 items-center text-accent font-bold text-xl">
           <!-- todo logo -->

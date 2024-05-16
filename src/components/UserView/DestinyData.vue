@@ -1,15 +1,14 @@
 <script setup lang="ts">
 
-import {getActivities, getManifestActivities} from "@/funcs/bungie";
+import {getActivities, getManifestActivities, type ManifestActivity} from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import ActivityFilter from "@/components/UserView/Activities/ActivityFilter.vue";
-import {CollapsibleContent, CollapsibleRoot, Separator} from "radix-vue";
 import {TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger} from 'radix-vue'
-import {reactive, ref, watch} from "vue";
+import {reactive, type Ref, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
 import TopicBarNEW from "@/components/UserView/TopicBar-NEW.vue";
 import FilterSidebar from "@/components/UserView/FilterSidebar.vue";
@@ -23,14 +22,25 @@ const data = await getActivities(membershipId, membershipType)
 
 // get the manifest data for the activities
 // make sure to check if the version changed - else do not re-download
-const destinyManifest = useLocalStorage("destinyManifest", {version: "empty", activities: [["emptyKey", {}]]})
+const destinyManifest = useLocalStorage("destinyManifest", {
+  version: "empty",
+  activities: [["emptyKey", {}]],
+  modes: ["empty"],
+  maxPlayers: 0,
+})
 if (import.meta.env.DEV) {
   const manifest = await getDestinyManifest(bungieClient)
   if (manifest.Response.version != destinyManifest.value.version) {
-    destinyManifest.value.activities = await getManifestActivities(manifest.Response)
+    const {activities, modes, maxPlayers} = await getManifestActivities(manifest.Response)
+    destinyManifest.value.activities = activities
+    destinyManifest.value.modes = modes
+    destinyManifest.value.maxPlayers = maxPlayers
+
     destinyManifest.value.version = manifest.Response.version
   }
 }
+
+// --------------------------------------------
 
 // sort data by activities
 const dataByActivities: { [id: string]: any[] } = {}
@@ -41,20 +51,48 @@ for (const entry of data) {
   dataByActivities[entry.activityDetails.referenceId].push(entry)
 }
 
-// make this an infinite scroll
-const initialData: any = ref([])
-const loadingData: any = []
-let i = 0
-for (const entry of destinyManifest.value.activities) {
-  i += 1
+// --------------------------------------------
+// filters
 
-  if (i > 12) {
-    loadingData.push(entry)
-  } else {
-    initialData.value.push(entry)
+// updates to the activityModes
+const activityModeFilter: Ref<string[]> = ref([])
+
+
+// whenever the filter changes, load the activities
+const initialData: any = ref([])
+let loadingData: any = []
+
+function resetActivitiesOnFilterChange() {
+  const results = []
+  const resultsLoading = []
+  let i = 0
+  for (const entry of destinyManifest.value.activities) {
+    const data: ManifestActivity | any = entry[1]
+
+    // make sure the filters are respected
+    if (activityModeFilter.value.length > 0) {
+      if (!activityModeFilter.value.includes(data.activityMode)) {
+        continue
+      }
+    }
+
+    // split the entries between the ones to load instantly and the backup
+    i += 1
+    if (i > 12) {
+      resultsLoading.push(entry)
+    } else {
+      results.push(entry)
+    }
   }
+  loadingData = resultsLoading
+  initialData.value = results
 }
 
+resetActivitiesOnFilterChange()
+
+// --------------------------------------------
+
+// make this an infinite scroll
 // read the window position
 const {x, y} = useWindowScroll()
 const allActivitiesDiv = ref(null)
@@ -62,7 +100,7 @@ const activitiesDivSize = reactive(useElementSize(allActivitiesDiv))
 const cutoffHeight = 2000
 let currentlyLoadingMore = false
 
-watch(y, async (newY, oldY) => {
+watch(y, (newY, oldY) => {
   if (!currentlyLoadingMore) {
     if (newY > oldY) {
       if ((newY + cutoffHeight) >= activitiesDivSize.height) {
@@ -72,8 +110,8 @@ watch(y, async (newY, oldY) => {
   }
 })
 
+// load more activities if scrolled down
 function onLoadMore() {
-  // load more
   currentlyLoadingMore = true
   for (let j = 1; j <= 4; j++) {
     const entry: any = loadingData.shift()
@@ -83,6 +121,20 @@ function onLoadMore() {
     initialData.value.push(entry)
   }
   currentlyLoadingMore = false
+}
+
+function getDataByActivities(hashes: string[]) {
+  const result = []
+  for (const hash of hashes) {
+    if (hash in dataByActivities) {
+      result.push(...dataByActivities[hash])
+    }
+  }
+  if (result.length > 0) {
+    return result
+  } else {
+    return undefined
+  }
 }
 </script>
 
@@ -100,10 +152,14 @@ function onLoadMore() {
       <div>
         <div>
           FILTER STUFF
-
           <!-- todo -->
           <!-- Filter by: Mode, Name, Tags (player amount, pvp, matchmade, playlist), special tags, clears > x, special clears > x -->
-          <ActivityFilter placeholder="Activity Mode"/>
+          <ActivityFilter
+              placeholder="Activity Mode"
+              :options="destinyManifest.modes"
+              :values="activityModeFilter"
+              @filterChange="resetActivitiesOnFilterChange()"
+          />
 
           <!-- todo -->
           <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
@@ -149,7 +205,7 @@ function onLoadMore() {
               <Activity
                   v-for="entry in initialData"
                   :key="entry[0]"
-                  :activities="dataByActivities[entry[0]]"
+                  :activities="getDataByActivities(entry[1].hash)"
                   :manifest-activity="entry[1]"
               />
             </div>
@@ -164,7 +220,7 @@ function onLoadMore() {
               <Activity
                   v-for="entry in initialData"
                   :key="entry[0]"
-                  :activities="dataByActivities[entry[0]]"
+                  :activities="getDataByActivities(entry[1].hash)"
                   :manifest-activity="entry[1]"
               />
             </div>

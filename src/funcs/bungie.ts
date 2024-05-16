@@ -152,7 +152,7 @@ async function _getActivities(destinyMembershipId: string, membershipType: numbe
 }
 
 export interface ManifestActivity {
-    hash: string,
+    hash: string[],
     name: string,
     description: string,
     destination: string,
@@ -182,7 +182,9 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     const res = await r.json()
 
     // only return the relevant data - otherwise it is too big
-    const data: { [id: string]: ManifestActivity } = {}
+    const data: { [name: string]: ManifestActivity } = {}
+    const dataModes = new Set()
+    let dataMaxPlayers = 0
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
             // get the correct name - this is a bit tricky, since we want to group some activities
@@ -211,19 +213,28 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 activityMode = manifestActivityModes[value.directActivityModeHash].displayProperties.name
             }
 
-            data[key] = {
-                hash: key,
-                name: name,
-                description: value.displayProperties.description,
-                destination: value.destinationHash.toString(),
-                imageUrl: "https://www.bungie.net" + value.pgcrImage,
-                isPlaylist: value.isPlaylist,
-                isMatchmade: isMatchmade,
-                maxPlayers: maxPlayers,
-                activityMode: activityMode,
-                isPvp: value.isPvP,
-                redacted: value.redacted,
-                blacklisted: value.blacklisted,
+            if (name in data) {
+                data[name].hash.push(key)
+            } else {
+                data[name] = {
+                    hash: [key],
+                    name: name,
+                    description: value.displayProperties.description,
+                    destination: value.destinationHash.toString(),
+                    imageUrl: "https://www.bungie.net" + value.pgcrImage,
+                    isPlaylist: value.isPlaylist,
+                    isMatchmade: isMatchmade,
+                    maxPlayers: maxPlayers,
+                    activityMode: activityMode,
+                    isPvp: value.isPvP,
+                    redacted: value.redacted,
+                    blacklisted: value.blacklisted,
+                }
+            }
+
+            dataModes.add(activityMode)
+            if (maxPlayers > dataMaxPlayers) {
+                dataMaxPlayers = maxPlayers
             }
         }
     }
@@ -240,20 +251,24 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
         }
     )
     // if mode is same check name
-    return partlySorted.sort((a, b) => {
-        // check mode - if same check name
-        if (a[1].activityMode == b[1].activityMode) {
-            if (a[1].activityMode > b[1].activityMode) {
-                return 1
-            } else if (a[1].activityMode == b[1].activityMode) {
-                return 0
+    return {
+        activities: partlySorted.sort((a, b) => {
+            // check mode - if same check name
+            if (a[1].activityMode == b[1].activityMode) {
+                if (a[1].activityMode > b[1].activityMode) {
+                    return 1
+                } else if (a[1].activityMode == b[1].activityMode) {
+                    return 0
+                } else {
+                    return -1
+                }
             } else {
                 return -1
             }
-        } else {
-            return -1
-        }
-    })
+        }),
+        modes: [...dataModes],
+        maxPlayers: dataMaxPlayers,
+    }
 }
 
 

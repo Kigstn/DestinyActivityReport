@@ -15,7 +15,9 @@ module.exports = {
                 /** https://www.radix-ui.com/colors/custom -> accent: 008080 | gray: 8B8D98 | background: 111111 */
                 bg_site: "#0A1313",
                 bg_box: "#19191B",
+                bg_site_light: "#082D2D",
                 text_bright: "#A2F0EF",
+                text_bright_duller: "#6BCDCC",
                 text_normal: "#EEEEF0",
                 text_dull: "#B2B3BD",
                 accent: "#008080",

@@ -1,67 +1,101 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ComboboxAnchor, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxItemIndicator, ComboboxLabel, ComboboxRoot, ComboboxSeparator, ComboboxTrigger, ComboboxViewport } from 'radix-vue'
-import { Icon } from '@iconify/vue'
+import {type Ref, ref, watch} from 'vue'
+import {
+  ComboboxAnchor,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxRoot,
+  ComboboxTrigger,
+  ComboboxViewport, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText,
+  TagsInputRoot
+} from 'radix-vue'
+import {Icon} from '@iconify/vue'
 
-defineProps<{
+
+const props = defineProps<{
   placeholder: string,
+  options: string[],
+  values: string[]
 }>()
+const emit = defineEmits(["filterChange"])
 
-const v = ref('')
-const options = ['Apple', 'Banana', 'Blueberry', 'Grapes', 'Pineapple']
-const vegetables = ['Aubergine', 'Broccoli', 'Carrot', 'Courgette', 'Leek']
+const searchTerm = ref("")
+
+watch(
+    props.values,
+    () => {
+        searchTerm.value = ""
+        console.log("Emitted Filter Change")
+        emit("filterChange")
+    },
+    {deep: true}
+)
+
 </script>
 
 <template>
-  <ComboboxRoot v-model="v" class="relative">
-    <ComboboxAnchor class="min-w-[160px] inline-flex items-center justify-between rounded px-[15px] text-[13px] leading-none h-[35px] gap-[5px] bg-white text-grass11 shadow-[0_2px_10px] shadow-black/10 hover:bg-mauve3 focus:shadow-[0_0_0_2px] focus:shadow-black data-[placeholder]:text-grass9 outline-none">
-      <ComboboxInput class="!bg-transparent outline-none text-grass11 h-full selection:bg-grass5 placeholder-mauve8" :placeholder="'Filter ' + placeholder + '...'" />
+  <ComboboxRoot
+      class="relative mx-auto"
+      v-model="props.values"
+      v-model:search-term="searchTerm"
+      multiple
+  >
+    <ComboboxAnchor
+        class="bg-accent rounded-lg p-2 w-60 3xl:w-40 inline-flex items-center justify-between leading-none min-h-10 outline-none"
+    >
+      <TagsInputRoot
+          v-slot="{ modelValue: tags }"
+          :model-value="props.values"
+          delimiter=""
+          class="flex gap-2 items-center flex-wrap text-sm"
+      >
+        <TagsInputItem
+            v-for="item in tags" :key="item"
+            :value="item"
+            class="flex items-center justify-center gap-2 text-accent bg-text_bright rounded-lg px-1 py-0.5 "
+        >
+          <TagsInputItemText class="text-sm"/>
+          <TagsInputItemDelete>
+            <Icon icon="lucide:x"/>
+          </TagsInputItemDelete>
+        </TagsInputItem>
+
+        <ComboboxInput as-child>
+          <TagsInputInput
+              :placeholder="`${placeholder}...`"
+              class="flex-1 w-full !bg-transparent outline-none text-text_normal data-[state=closed]:border-none"
+              :class="(values.length == 0) ? 'placeholder-text_dull' : 'placeholder-transparent'"
+              @keydown.enter.prevent
+          />
+        </ComboboxInput>
+      </TagsInputRoot>
+
+
       <ComboboxTrigger>
-        <Icon icon="radix-icons:chevron-down" class="h-4 w-4 text-grass11" />
+        <Icon icon="radix-icons:chevron-down" class="h-4 w-4 text-text_bright"/>
       </ComboboxTrigger>
     </ComboboxAnchor>
 
-    <ComboboxContent class="absolute z-10 w-full mt-2 min-w-[160px] bg-white overflow-hidden rounded shadow-[0px_10px_38px_-10px_rgba(22,_23,_24,_0.35),_0px_10px_20px_-15px_rgba(22,_23,_24,_0.2)] will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade">
+    <ComboboxContent
+        class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade">
       <ComboboxViewport class="p-[5px]">
-        <ComboboxEmpty class="text-mauve8 text-xs font-medium text-center py-2" />
+        <ComboboxEmpty class="text-text_dull text-xs text-center p-1"/>
 
         <ComboboxGroup>
-          <ComboboxLabel class="px-[25px] text-xs leading-[25px] text-mauve11">
-            Fruits
-          </ComboboxLabel>
-
           <ComboboxItem
-            v-for="(option, index) in options" :key="index"
-            class="text-[13px] leading-none text-grass11 rounded-[3px] flex items-center h-[25px] pr-[35px] pl-[25px] relative select-none data-[disabled]:text-mauve8 data-[disabled]:pointer-events-none data-[highlighted]:outline-none data-[highlighted]:bg-grass9 data-[highlighted]:text-grass1"
-            :value="option"
+              v-for="(option, index) in options"
+              class="text-sm leading-none rounded-lg flex items-center h-6 px-6 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
+              :key="index"
+              :value="option"
           >
             <ComboboxItemIndicator
-              class="absolute left-0 w-[25px] inline-flex items-center justify-center"
+                class="absolute left-0 w-6 inline-flex items-center justify-center"
             >
-              <Icon icon="radix-icons:check" />
-            </ComboboxItemIndicator>
-            <span>
-              {{ option }}
-            </span>
-          </ComboboxItem>
-          <ComboboxSeparator class="h-[1px] bg-grass6 m-[5px]" />
-        </ComboboxGroup>
-
-        <ComboboxGroup>
-          <ComboboxLabel
-            class="px-[25px] text-xs leading-[25px] text-mauve11"
-          >
-            Vegetables
-          </ComboboxLabel>
-          <ComboboxItem
-            v-for="(option, index) in vegetables" :key="index"
-            class="text-[13px] leading-none text-grass11 rounded-[3px] flex items-center h-[25px] pr-[35px] pl-[25px] relative select-none data-[disabled]:text-mauve8 data-[disabled]:pointer-events-none data-[highlighted]:outline-none data-[highlighted]:bg-grass9 data-[highlighted]:text-grass1"
-            :value="option"
-          >
-            <ComboboxItemIndicator
-              class="absolute left-0 w-[25px] inline-flex items-center justify-center"
-            >
-              <Icon icon="radix-icons:check" />
+              <Icon icon="radix-icons:check"/>
             </ComboboxItemIndicator>
             <span>
               {{ option }}
