@@ -86,7 +86,7 @@ onMounted(() => {
         <ComboboxInput as-child>
           <TagsInputInput
               placeholder="Type here..."
-              class="flex-1 w-full !bg-transparent outline-none text-text_normal data-[state=closed]:border-none"
+              class="flex-1 w-full !bg-transparent outline-none text-text_bright data-[state=closed]:border-none"
               :class="(values.length == 0) ? 'placeholder-text_dull' : 'placeholder-transparent'"
               @keydown.enter.prevent
           />

@@ -202,6 +202,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     const dataTags = new Set()
 
     let dataMaxPlayers = 0
+    const placeholderImageUrl = "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/placeholder.jpg"
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
             // get the correct name - this is a bit tricky, since we want to group some activities
@@ -218,6 +219,10 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
 
             let isMatchmade = false
             let maxPlayers = 0
+            let imageUrl = placeholderImageUrl
+            if (value.pgcrImage) {
+                imageUrl = "https://www.bungie.net" + value.pgcrImage
+            }
             if (value.matchmaking) {
                 isMatchmade = value.matchmaking.isMatchmade
                 maxPlayers = value.matchmaking.maxPlayers
@@ -239,7 +244,6 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
             if (value.isPlaylist) {
                 tags.push("Playlist")
                 dataTags.add("Playlist")
-
             }
             if (isMatchmade) {
                 tags.push("Matchmade")
@@ -248,13 +252,16 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
 
             if (name in data) {
                 data[name].hash.push(key)
+                if (imageUrl != placeholderImageUrl && data[name].imageUrl == placeholderImageUrl) {
+                    data[name].imageUrl = imageUrl
+                }
             } else {
                 data[name] = {
                     hash: [key],
                     name: name,
                     description: value.displayProperties.description,
                     destination: value.destinationHash.toString(),
-                    imageUrl: "https://www.bungie.net" + value.pgcrImage,
+                    imageUrl: imageUrl,
                     isPlaylist: value.isPlaylist,
                     isMatchmade: isMatchmade,
                     maxPlayers: maxPlayers,

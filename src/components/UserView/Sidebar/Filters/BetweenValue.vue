@@ -8,6 +8,7 @@ import {
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
 import {ref, watch} from "vue";
+import {useDebouncedRef} from "@/funcs/utils";
 
 const props = defineProps<{
   name: string,
@@ -17,25 +18,22 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(["filterChange"])
 
-const value = ref(props.def)
+const value = useDebouncedRef(props.def, filterChange)
 
-watch(
-    value,
-    () => {
-      emit("filterChange", value.value)
-    },
-)
+function filterChange () {
+  emit("filterChange", value.value)
+}
 </script>
 
 <template>
   <NumberFieldRoot
-      class="text-sm clickable"
+      class="text-sm clickable h-14 flex flex-col justify-between"
       :min="min"
       :max="max"
       :default-value="def"
       v-model="value"
   >
-    <NumberFieldLabel class="text-xs text-text_normal pl-1">
+    <NumberFieldLabel class="text-xs text-text_normal p-1">
       {{ name }}
     </NumberFieldLabel>
 
