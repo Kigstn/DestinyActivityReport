@@ -42,7 +42,7 @@ export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
     datetime: Date,
     completed: boolean,
     lengthSeconds: number,
-    specialTags: string[]
+    specialTags: string[],
 }
 
 export async function getActivities(destinyMembershipId: any, membershipType: any) {
@@ -73,6 +73,20 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
     await Promise.all(funcs)
 
     return _calcExtras(data)
+}
+
+export const specialTags = {
+    "General": [
+        "Personal Flawless",
+        "Solo",
+        "Solo Flawless",
+    ],
+    "Raid": [
+        "Trio"
+    ],
+    "Raid / Dungeon": [
+        "Duo",
+    ],
 }
 
 function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
@@ -164,6 +178,7 @@ export interface ManifestActivity {
     isPvp: boolean,
     redacted: boolean,
     blacklisted: boolean,
+    tags: string[],
 }
 
 export async function getManifestActivities(destinyManifest: DestinyManifest) {
@@ -184,6 +199,8 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     // only return the relevant data - otherwise it is too big
     const data: { [name: string]: ManifestActivity } = {}
     const dataModes = new Set()
+    const dataTags = new Set()
+
     let dataMaxPlayers = 0
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
@@ -213,6 +230,22 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 activityMode = manifestActivityModes[value.directActivityModeHash].displayProperties.name
             }
 
+            // tags
+            const tags = []
+            if (value.isPvP) {
+                tags.push("PvP")
+                dataTags.add("PvP")
+            }
+            if (value.isPlaylist) {
+                tags.push("Playlist")
+                dataTags.add("Playlist")
+
+            }
+            if (isMatchmade) {
+                tags.push("Matchmade")
+                dataTags.add("Matchmade")
+            }
+
             if (name in data) {
                 data[name].hash.push(key)
             } else {
@@ -229,6 +262,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     isPvp: value.isPvP,
                     redacted: value.redacted,
                     blacklisted: value.blacklisted,
+                    tags: tags
                 }
             }
 
@@ -267,6 +301,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
             }
         }),
         modes: [...dataModes],
+        tags: [...dataTags],
         maxPlayers: dataMaxPlayers,
     }
 }

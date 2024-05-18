@@ -1,4 +1,4 @@
-export function formatTime(x: number) {
+export function formatTime(x: number | null) {
     if (x == 0 || x == null) {
         return null
     }
@@ -16,4 +16,8 @@ export function formatTime(x: number) {
     } else {
         return minutes + "m " + seconds + "s"
     }
+}
+
+export function hasIntersection(arr1: string[], arr2: string[]) {
+    return Boolean(arr1.filter(element => arr2.includes(element)))
 }

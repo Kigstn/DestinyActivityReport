@@ -59,6 +59,10 @@ function searchUser() {
           </button>
         </div>
       </div>
+
+      <div>
+        Favorite Account Quick Link
+      </div>
     </header>
 
     <div class="h-full overflow-y-auto grow-0 flex flex-col">

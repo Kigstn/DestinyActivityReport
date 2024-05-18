@@ -75,7 +75,8 @@ if (activityTimes.length != 0) {
 </script>
 
 <template>
-  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80" :id="manifestActivity.hash.toString()">
+  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80"
+       :id="manifestActivity.hash.toString()">
     <div class="">
       <div class="h-48 relative">
         <img
@@ -115,10 +116,10 @@ if (activityTimes.length != 0) {
               <TooltipPortal>
                 <TooltipContent class="tooltip">
                   <p v-if="toggleState">
-                    Unpin
+                    Unpin Activity
                   </p>
                   <p v-else>
-                    Pin to top
+                    Pin Activity
                   </p>
                   <TooltipArrow class="fill-text_bright" :width="12"/>
                 </TooltipContent>
@@ -143,16 +144,8 @@ if (activityTimes.length != 0) {
         <!-- Small Info -->
         <div class="absolute bottom-1 right-2">
           <div class="flex gap-x-1">
-            <Tag class="text-xs" v-if=props.manifestActivity.isPvp>
-              PvP
-            </Tag>
-
-            <Tag class="text-xs" v-if=props.manifestActivity.isPlaylist>
-              Playlist
-            </Tag>
-
-            <Tag class="text-xs" v-if=props.manifestActivity.isMatchmade>
-              Matchmade
+            <Tag class="text-xs" v-for="tag in props.manifestActivity.tags">
+              {{ tag }}
             </Tag>
 
             <Tag class="text-xs">

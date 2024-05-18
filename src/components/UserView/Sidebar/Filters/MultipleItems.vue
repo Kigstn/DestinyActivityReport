@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {type Ref, ref, watch} from 'vue'
+import {onMounted, type Ref, ref, watch} from 'vue'
 import {
   ComboboxAnchor,
   ComboboxContent,
@@ -7,18 +7,18 @@ import {
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxItemIndicator,
-  ComboboxRoot,
+  ComboboxItemIndicator, ComboboxLabel,
+  ComboboxRoot, ComboboxSeparator,
   ComboboxTrigger,
   ComboboxViewport, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText,
   TagsInputRoot
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
-
+import {useMouseInElement} from "@vueuse/core";
 
 const props = defineProps<{
   placeholder: string,
-  options: string[],
+  options: string[] | { [id: string]: string[] },
   values: string[]
 }>()
 const emit = defineEmits(["filterChange"])
@@ -28,24 +28,43 @@ const searchTerm = ref("")
 watch(
     props.values,
     () => {
-        searchTerm.value = ""
-        console.log("Emitted Filter Change")
-        emit("filterChange")
+      searchTerm.value = ""
+      console.log("Emitted Filter Change")
+      emit("filterChange")
     },
     {deep: true}
 )
 
+// add event listener to close doc if clicked outside
+const viewport = ref(null)
+const open = ref(false)
+const { isOutside: viewportOutside } = useMouseInElement(viewport)
+onMounted(() => {
+  document.addEventListener("click", (e) => {
+    if (viewportOutside.value && open.value) {
+      open.value = false
+    }
+  })
+})
+
+// todo scrollbar not visible
 </script>
 
 <template>
   <ComboboxRoot
-      class="relative mx-auto"
+      class="relative"
       v-model="props.values"
       v-model:search-term="searchTerm"
+      v-model:open="open"
       multiple
+      ref="viewport"
   >
+    <div class="absolute top-1 left-1 text-xs text-text_normal">
+      {{ placeholder }}
+    </div>
+
     <ComboboxAnchor
-        class="bg-accent rounded-lg p-2 w-60 3xl:w-40 inline-flex items-center justify-between leading-none min-h-10 outline-none"
+        class="clickable p-2 pt-6 w-60 3xl:w-40 inline-flex items-center justify-between leading-none min-h-14 outline-none"
     >
       <TagsInputRoot
           v-slot="{ modelValue: tags }"
@@ -66,7 +85,7 @@ watch(
 
         <ComboboxInput as-child>
           <TagsInputInput
-              :placeholder="`${placeholder}...`"
+              placeholder="Type here..."
               class="flex-1 w-full !bg-transparent outline-none text-text_normal data-[state=closed]:border-none"
               :class="(values.length == 0) ? 'placeholder-text_dull' : 'placeholder-transparent'"
               @keydown.enter.prevent
@@ -81,11 +100,13 @@ watch(
     </ComboboxAnchor>
 
     <ComboboxContent
-        class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade">
+        class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+    >
       <ComboboxViewport class="p-[5px]">
         <ComboboxEmpty class="text-text_dull text-xs text-center p-1"/>
 
-        <ComboboxGroup>
+        <!-- Render Arrays-->
+        <ComboboxGroup v-if="Array.isArray(options)">
           <ComboboxItem
               v-for="(option, index) in options"
               class="text-sm leading-none rounded-lg flex items-center h-6 px-6 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
@@ -102,6 +123,34 @@ watch(
             </span>
           </ComboboxItem>
         </ComboboxGroup>
+
+        <!-- Render Dicts-->
+        <div v-else>
+          <ComboboxGroup v-for="(value, key, index) in options">
+            <ComboboxLabel class="px-6 text-xs leading-4 text-text_dull">
+              {{ key }}
+            </ComboboxLabel>
+
+            <ComboboxItem
+                v-for="(option, index) in value"
+                class="text-sm leading-none rounded-lg flex items-center h-6 px-6 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
+                :key="index"
+                :value="option"
+            >
+              <ComboboxItemIndicator
+                  class="absolute left-0 w-6 inline-flex items-center justify-center"
+              >
+                <Icon icon="radix-icons:check"/>
+              </ComboboxItemIndicator>
+
+              <span>
+                {{ option }}
+              </span>
+            </ComboboxItem>
+
+            <ComboboxSeparator v-if="(Object.keys(options).length - 1) > index" class="h-0.5 bg-text_dull/50 m-1"/>
+          </ComboboxGroup>
+        </div>
       </ComboboxViewport>
     </ComboboxContent>
   </ComboboxRoot>

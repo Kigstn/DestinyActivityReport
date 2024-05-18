@@ -1,17 +1,20 @@
 <script setup lang="ts">
 
-import {getActivities, getManifestActivities, type ManifestActivity} from "@/funcs/bungie";
+import {specialTags, getActivities, getManifestActivities, type ManifestActivity} from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
-import ActivityFilter from "@/components/UserView/Activities/ActivityFilter.vue";
+import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
 import {TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger} from 'radix-vue'
 import {reactive, type Ref, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
 import TopicBarNEW from "@/components/UserView/TopicBar-NEW.vue";
-import FilterSidebar from "@/components/UserView/FilterSidebar.vue";
+import FilterSidebar from "@/components/UserView/Sidebar/FilterSidebar.vue";
+import {hasIntersection} from "@/funcs/utils";
+import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
+import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 
 const route = useRoute()
 
@@ -26,14 +29,16 @@ const destinyManifest = useLocalStorage("destinyManifest", {
   version: "empty",
   activities: [["emptyKey", {}]],
   modes: ["empty"],
+  tags: ["empty"],
   maxPlayers: 0,
 })
 if (import.meta.env.DEV) {
   const manifest = await getDestinyManifest(bungieClient)
   if (manifest.Response.version != destinyManifest.value.version) {
-    const {activities, modes, maxPlayers} = await getManifestActivities(manifest.Response)
+    const {activities, modes, tags, maxPlayers} = await getManifestActivities(manifest.Response)
     destinyManifest.value.activities = activities
     destinyManifest.value.modes = modes
+    destinyManifest.value.tags = tags
     destinyManifest.value.maxPlayers = maxPlayers
 
     destinyManifest.value.version = manifest.Response.version
@@ -56,7 +61,11 @@ for (const entry of data) {
 
 // updates to the activityModes
 const activityModeFilter: Ref<string[]> = ref([])
-
+const activityTagsFilter: Ref<string[]> = ref([])
+const achievementTagsFilter: Ref<string[]> = ref([])
+const activityMaxPlayerCountFilter: Ref<number> = ref(destinyManifest.value.maxPlayers)
+const activityMinCountFilter: Ref<number> = ref(0)
+const activityMinSpecialCountFilter: Ref<number> = ref(0)
 
 // whenever the filter changes, load the activities
 const initialData: any = ref([])
@@ -65,13 +74,49 @@ let loadingData: any = []
 function resetActivitiesOnFilterChange() {
   const results = []
   const resultsLoading = []
+  let found = false
   let i = 0
   for (const entry of destinyManifest.value.activities) {
     const data: ManifestActivity | any = entry[1]
+    const activityData = getDataByActivities(data.hash)
 
     // make sure the filters are respected
+    // activity mode
     if (activityModeFilter.value.length > 0) {
       if (!activityModeFilter.value.includes(data.activityMode)) {
+        continue
+      }
+    }
+
+    // achievement tags
+    if (achievementTagsFilter.value.length > 0) {
+      if (activityData) {
+        const founds = []
+        for (const tag of achievementTagsFilter.value) {
+          found = false
+          for (const activity of activityData) {
+            if (activity.specialTags.includes(tag)) {
+              found = true
+              break
+            }
+          }
+          founds.push(found)
+        }
+        if (!founds.every(v => v === true)) {
+          continue
+        }
+      } else {
+        continue
+      }
+    }
+
+    // activity tags
+    if (activityTagsFilter.value.length > 0) {
+      const founds = []
+      for (const tag of activityTagsFilter.value) {
+        founds.push(data.tags.includes(tag))
+      }
+      if (!founds.every(v => v === true)) {
         continue
       }
     }
@@ -149,28 +194,70 @@ function getDataByActivities(hashes: string[]) {
         </svg>
       </template>
 
-      <div>
+      <SidebarSection name="General Filters">
+        <!-- Filter by: Name -->
         <div>
-          FILTER STUFF
-          <!-- todo -->
-          <!-- Filter by: Mode, Name, Tags (player amount, pvp, matchmade, playlist), special tags, clears > x, special clears > x -->
-          <ActivityFilter
-              placeholder="Activity Mode"
-              :options="destinyManifest.modes"
-              :values="activityModeFilter"
-              @filterChange="resetActivitiesOnFilterChange()"
-          />
-
-          <!-- todo -->
-          <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
-
+          name
         </div>
 
-        <!-- Activities -->
-        <div>
-          MORE ACTIVITIES
-        </div>
-      </div>
+        <!-- todo vals -->
+        <!-- Filter by: clears -->
+        <BetweenValue
+            name="Minimum Clears"
+            :min="0"
+            :max="10"
+            :def="activityMinCountFilter"
+            @filterChange="(n) => activityMinCountFilter = n"
+        />
+
+        <!-- todo vals -->
+        <!-- Filter by: special clears -->
+        <BetweenValue
+            name="Minimum Special Clears"
+            :min="0"
+            :max="10"
+            :def="activityMinSpecialCountFilter"
+            @filterChange="(n) => activityMinSpecialCountFilter = n"
+        />
+
+        <!-- Filter by: player amount -->
+        <BetweenValue
+            name="Maximum Players"
+            :min="1"
+            :max="destinyManifest.maxPlayers"
+            :def="activityMaxPlayerCountFilter"
+            @filterChange="(n) => activityMaxPlayerCountFilter = n"
+        />
+
+      </SidebarSection>
+
+      <SidebarSection name="<OR> Filters">
+        <!-- Filter by: Mode -->
+        <MultipleItems
+            placeholder="Activity Mode"
+            :options="destinyManifest.modes"
+            :values="activityModeFilter"
+            @filterChange="resetActivitiesOnFilterChange()"
+        />
+      </SidebarSection>
+
+      <SidebarSection name="<AND> Filters">
+        <!-- Filter by: Achievements -->
+        <MultipleItems
+            placeholder="Achievement Tags"
+            :options="specialTags"
+            :values="achievementTagsFilter"
+            @filterChange="resetActivitiesOnFilterChange()"
+        />
+
+        <!-- Filter by: Tags -->
+        <MultipleItems
+            placeholder="Activity Tags"
+            :options="destinyManifest.tags"
+            :values="activityTagsFilter"
+            @filterChange="resetActivitiesOnFilterChange()"
+        />
+      </SidebarSection>
     </FilterSidebar>
 
     <div class="flex flex-col max-w-[1600px] grow">
@@ -237,6 +324,10 @@ function getDataByActivities(hashes: string[]) {
               fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
         </svg>
       </template>
+
+
+      <!-- todo -->
+      <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
 
       SORT STUFF
     </FilterSidebar>

@@ -4,7 +4,7 @@ import {Icon} from "@iconify/vue";
 </script>
 
 <template>
-  <div class="hidden 3xl:flex shrink w-48 overflow-hidden bg-green-400">
+  <div class="hidden 3xl:flex 3xl:flex-col gap-6 shrink w-48 overflow-hidden bg-green-400">
     <slot/>
   </div>
 
@@ -21,7 +21,7 @@ import {Icon} from "@iconify/vue";
             :side-offset="5"
             class="tooltip min-w-48 will-change-[transform,opacity] data-[state=open]:data-[side=top]:animate-slideDownAndFade data-[state=open]:data-[side=right]:animate-slideLeftAndFade data-[state=open]:data-[side=bottom]:animate-slideUpAndFade data-[state=open]:data-[side=left]:animate-slideRightAndFade"
         >
-          <div class="flex flex-col gap-2.5">
+          <div class="flex flex-col gap-6">
                <slot/>
           </div>
           <PopoverClose

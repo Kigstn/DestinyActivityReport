@@ -19,7 +19,7 @@
     "chart.js": "^4.4.2",
     "chartjs-plugin-annotation": "^3.0.1",
     "pinia": "^2.1.7",
-    "radix-vue": "^1.7.3",
+    "radix-vue": "^1.8.0",
     "vue": "^3.4.21",
     "vue-chartjs": "^5.3.1",
     "vue-router": "^4.3.0"
