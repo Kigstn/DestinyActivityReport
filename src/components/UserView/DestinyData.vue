@@ -163,18 +163,21 @@ resetActivitiesOnFilterChange()
 const {x, y} = useWindowScroll()
 const allActivitiesDiv = ref(null)
 const activitiesDivSize = reactive(useElementSize(allActivitiesDiv))
-const cutoffHeight = 1000
+const cutoffHeight = 1500
 let currentlyLoadingMore = false
 
-watch(y, (newY, oldY) => {
-  if (!currentlyLoadingMore) {
-    if (newY > oldY) {
-      if ((newY + cutoffHeight) >= activitiesDivSize.height) {
-        onLoadMore()
+watch(
+    y,
+    (newY, oldY) => {
+      if (!currentlyLoadingMore) {
+        if (newY > oldY) {
+          if ((newY + cutoffHeight) >= activitiesDivSize.height) {
+            onLoadMore()
+          }
+        }
       }
-    }
-  }
-})
+    },
+)
 
 // load more activities if scrolled down
 function onLoadMore() {
@@ -297,25 +300,38 @@ function getDataByActivities(hashes: string[]) {
         </TopicBar>
       </RadioGroupRoot>
 
+
       <div
-          ref="allActivitiesDiv"
-          class="w-full"
+          v-if="initialData.length === 0"
+          class="italic text-text_dull text-lg p-2 text-center pt-16 flex flex-col gap-2"
       >
-        <div
-            class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
-        >
-          <Activity
-              v-for="entry in initialData"
-              :key="entry[0]"
-              :activities="getDataByActivities(entry[1].hash)"
-              :manifest-activity="entry[1]"
-              @filterChange="(n: any) => {
+        <p>Imagine some cool activity stats here...</p>
+        <p>Sadly, nothing exists for your current filters (or you have nothing pinned)</p>
+      </div>
+      <div
+          v-else
+          ref="allActivitiesDiv"
+          class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
+      >
+        <Activity
+            v-for="entry in initialData"
+            :key="entry[0]"
+            :activities="getDataByActivities(entry[1].hash)"
+            :manifest-activity="entry[1]"
+            @filterChange="(n: any) => {
                 if (currentTab == 'Pinned') {
                   pinnedActivities = n
                   resetActivitiesOnFilterChange()
                 }
               }"
-          />
+        />
+        <div
+            class="col-span-1 md:col-span-2 lg:col-span-3 2xl:col-span-4 italic text-text_dull/50 text-sm p-2"
+        >
+          <div class="bg-text_dull/50 h-[1px]"/>
+          <p class="pt-1 px-8">
+            That's everything :)
+          </p>
         </div>
       </div>
     </div>

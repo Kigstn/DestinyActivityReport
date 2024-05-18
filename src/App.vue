@@ -65,12 +65,12 @@ function searchUser() {
       </div>
     </header>
 
-    <div class="h-full overflow-y-auto grow-0 flex flex-col">
+    <div class="h-full grow flex flex-col">
       <main class="grow flex justify-around w-full py-4">
         <RouterView/>
       </main>
 
-      <footer class="h-10 p-2 text-text_bright/50 flex divide-x divide-text_bright/50 justify-end">
+      <footer class="bottom-0 h-10 p-2 text-text_bright/50 flex divide-x divide-text_bright/50 justify-end">
         <h4 class="px-2">
           {{ version }}
         </h4>

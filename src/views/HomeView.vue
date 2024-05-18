@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import {watch} from "vue";
+import {useWindowScroll} from "@vueuse/core";
+const {x, y} = useWindowScroll()
+
+
 </script>
 
 <template>
+      {{y}}
+
 <div class="h-screen bg-black flex flex-col">
+
       <!-- COLUMN ONE -->
       <div class="flex flex-col h-full">
 
@@ -29,6 +37,6 @@
 
 
       </div>
+{{y}}
 </div>
-
 </template>
