@@ -46,7 +46,7 @@ if (import.meta.env.DEV) {
 
 // tracked what is pinned (by name)
 const currentTab = ref("Pinned")
-const pinnedActivities = useLocalStorage("pinnedActivities", [])
+const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
 
 // --------------------------------------------
 
@@ -84,7 +84,7 @@ function resetActivitiesOnFilterChange() {
 
     // show all, or show pinned activities?
     if (currentTab.value == "Pinned") {
-      if (!pinnedActivities.value.includes(data.name)) {
+      if (!pinnedActivities.value.has(data.name)) {
         continue
       }
     }
@@ -309,6 +309,12 @@ function getDataByActivities(hashes: string[]) {
               :key="entry[0]"
               :activities="getDataByActivities(entry[1].hash)"
               :manifest-activity="entry[1]"
+              @filterChange="(n: any) => {
+                if (currentTab == 'Pinned') {
+                  pinnedActivities = n
+                  resetActivitiesOnFilterChange()
+                }
+              }"
           />
         </div>
       </div>

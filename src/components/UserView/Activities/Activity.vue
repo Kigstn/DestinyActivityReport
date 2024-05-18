@@ -12,14 +12,16 @@ import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import {type PlayedActivities} from "@/funcs/bungie";
 import {formatTime} from "@/funcs/utils";
 import Tooltip from "@/components/UserView/Tooltip.vue";
+import {useLocalStorage} from "@vueuse/core";
 
 const props = defineProps<{
   manifestActivity: ManifestActivity,
   activities: PlayedActivities[] | undefined
 }>()
+defineEmits(["filterChange"])
 
-const toggleState = ref(false)
-
+const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
+const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
 
 // calculate with the activities for this
 let activityClears = 0
@@ -67,8 +69,11 @@ if (activityTimes.length != 0) {
 </script>
 
 <template>
-  <div class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80"
-       :id="manifestActivity.hash.toString()">
+
+  <div
+      class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80"
+      :id="manifestActivity.hash.toString()"
+  >
     <div class="">
       <div class="h-48 relative">
         <img
@@ -77,14 +82,22 @@ if (activityTimes.length != 0) {
             :alt="`${props.manifestActivity.name} Image`"
         >
 
-        <!-- todo -->
         <!-- Pin it -->
         <div class="absolute top-2 right-2">
           <Tooltip>
             <template v-slot:hoverable>
               <Toggle
-                  v-model:pressed="toggleState" aria-label="Pin Item"
+                  v-model:pressed="toggleState"
+                  aria-label="Pin Item"
                   class="clickable flex items-center justify-center w-8 h-8"
+                  @click="() => {
+                    if (toggleState) {
+                      pinnedActivities.add(manifestActivity.name)
+                    } else {
+                      pinnedActivities.delete(manifestActivity.name)
+                      $emit('filterChange', pinnedActivities)
+                    }
+                  }"
               >
                 <svg v-if="toggleState" width="20" height="20" viewBox="0 0 15 15" fill="none"
                      xmlns="http://www.w3.org/2000/svg">
