@@ -7,11 +7,10 @@ import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
-import {NumberFieldLabel, TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger} from 'radix-vue'
+import {RadioGroupRoot} from 'radix-vue'
 import {reactive, type Ref, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
 import FilterSidebar from "@/components/UserView/Sidebar/FilterSidebar.vue";
-import {hasIntersection} from "@/funcs/utils";
 import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
 import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
@@ -270,69 +269,49 @@ function getDataByActivities(hashes: string[]) {
     </FilterSidebar>
 
     <div class="flex flex-col max-w-[1600px] grow">
-      <TabsRoot
-          class="flex flex-col w-full"
-          default-value="Pinned"
+      <RadioGroupRoot
           v-model="currentTab"
+          :default-value="currentTab"
+          orientation="vertical"
           @update:modelValue="resetActivitiesOnFilterChange()"
+          class="grid grid-cols-2 gap-2"
       >
-        <TabsList class="flex gap-4" aria-label="Show pinned or all activities">
-          <TopicBar name="Pinned">
-            <svg width="30" height="30" viewBox="0 0 15 15" fill="none"
-                 xmlns="http://www.w3.org/2000/svg">
-              <path
-                  d="M9.62129 1.13607C9.81656 0.940808 10.1331 0.940809 10.3284 1.13607L11.3891 2.19673L12.8033 3.61094L13.8639 4.6716C14.0592 4.86687 14.0592 5.18345 13.8639 5.37871C13.6687 5.57397 13.3521 5.57397 13.1568 5.37871L12.5038 4.7257L8.86727 9.57443L9.97485 10.682C10.1701 10.8773 10.1701 11.1939 9.97485 11.3891C9.77959 11.5844 9.463 11.5844 9.26774 11.3891L7.85353 9.97491L6.79287 8.91425L3.5225 12.1846C3.32724 12.3799 3.01065 12.3799 2.81539 12.1846C2.62013 11.9894 2.62013 11.6728 2.81539 11.4775L6.08576 8.20714L5.0251 7.14648L3.61089 5.73226C3.41563 5.537 3.41562 5.22042 3.61089 5.02516C3.80615 4.8299 4.12273 4.8299 4.31799 5.02516L5.42557 6.13274L10.2743 2.49619L9.62129 1.84318C9.42603 1.64792 9.42603 1.33133 9.62129 1.13607Z"
-                  fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-              <path
-                  d="M9.62129 1.13607C9.81656 0.940808 10.1331 0.940809 10.3284 1.13607L11.3891 2.19673L12.8033 3.61094L13.8639 4.6716C14.0592 4.86687 14.0592 5.18345 13.8639 5.37871C13.6687 5.57397 13.3521 5.57397 13.1568 5.37871L12.5038 4.7257L8.86727 9.57443L9.97485 10.682C10.1701 10.8773 10.1701 11.1939 9.97485 11.3891C9.77959 11.5844 9.463 11.5844 9.26774 11.3891L7.85353 9.97491L6.79287 8.91425L3.5225 12.1846C3.32724 12.3799 3.01065 12.3799 2.81539 12.1846C2.62013 11.9894 2.62013 11.6728 2.81539 11.4775L6.08576 8.20714L5.0251 7.14648L3.61089 5.73226C3.41563 5.537 3.41562 5.22042 3.61089 5.02516C3.80615 4.8299 4.12273 4.8299 4.31799 5.02516L5.42557 6.13274L10.2743 2.49619L9.62129 1.84318C9.42603 1.64792 9.42603 1.33133 9.62129 1.13607Z"
-                  fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-            </svg>
-          </TopicBar>
+        <TopicBar name="Pinned">
+          <svg width="30" height="30" viewBox="0 0 15 15" fill="none"
+               xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M9.62129 1.13607C9.81656 0.940808 10.1331 0.940809 10.3284 1.13607L11.3891 2.19673L12.8033 3.61094L13.8639 4.6716C14.0592 4.86687 14.0592 5.18345 13.8639 5.37871C13.6687 5.57397 13.3521 5.57397 13.1568 5.37871L12.5038 4.7257L8.86727 9.57443L9.97485 10.682C10.1701 10.8773 10.1701 11.1939 9.97485 11.3891C9.77959 11.5844 9.463 11.5844 9.26774 11.3891L7.85353 9.97491L6.79287 8.91425L3.5225 12.1846C3.32724 12.3799 3.01065 12.3799 2.81539 12.1846C2.62013 11.9894 2.62013 11.6728 2.81539 11.4775L6.08576 8.20714L5.0251 7.14648L3.61089 5.73226C3.41563 5.537 3.41562 5.22042 3.61089 5.02516C3.80615 4.8299 4.12273 4.8299 4.31799 5.02516L5.42557 6.13274L10.2743 2.49619L9.62129 1.84318C9.42603 1.64792 9.42603 1.33133 9.62129 1.13607Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+            <path
+                d="M9.62129 1.13607C9.81656 0.940808 10.1331 0.940809 10.3284 1.13607L11.3891 2.19673L12.8033 3.61094L13.8639 4.6716C14.0592 4.86687 14.0592 5.18345 13.8639 5.37871C13.6687 5.57397 13.3521 5.57397 13.1568 5.37871L12.5038 4.7257L8.86727 9.57443L9.97485 10.682C10.1701 10.8773 10.1701 11.1939 9.97485 11.3891C9.77959 11.5844 9.463 11.5844 9.26774 11.3891L7.85353 9.97491L6.79287 8.91425L3.5225 12.1846C3.32724 12.3799 3.01065 12.3799 2.81539 12.1846C2.62013 11.9894 2.62013 11.6728 2.81539 11.4775L6.08576 8.20714L5.0251 7.14648L3.61089 5.73226C3.41563 5.537 3.41562 5.22042 3.61089 5.02516C3.80615 4.8299 4.12273 4.8299 4.31799 5.02516L5.42557 6.13274L10.2743 2.49619L9.62129 1.84318C9.42603 1.64792 9.42603 1.33133 9.62129 1.13607Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
+        </TopicBar>
 
-          <TopicBar name="All Activities">
-            <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                  d="M7.85367 1.48956C7.65841 1.29429 7.34182 1.29429 7.14656 1.48956L1.48971 7.14641C1.29445 7.34167 1.29445 7.65825 1.48971 7.85352L7.14656 13.5104C7.34182 13.7056 7.65841 13.7056 7.85367 13.5104L13.5105 7.85352C13.7058 7.65825 13.7058 7.34167 13.5105 7.14641L7.85367 1.48956ZM7.5 2.55033L2.55037 7.49996L7.5 12.4496V2.55033Z"
-                  fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-            </svg>
-          </TopicBar>
-        </TabsList>
+        <TopicBar name="All Activities">
+          <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M7.85367 1.48956C7.65841 1.29429 7.34182 1.29429 7.14656 1.48956L1.48971 7.14641C1.29445 7.34167 1.29445 7.65825 1.48971 7.85352L7.14656 13.5104C7.34182 13.7056 7.65841 13.7056 7.85367 13.5104L13.5105 7.85352C13.7058 7.65825 13.7058 7.34167 13.5105 7.14641L7.85367 1.48956ZM7.5 2.55033L2.55037 7.49996L7.5 12.4496V2.55033Z"
+                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
+        </TopicBar>
+      </RadioGroupRoot>
 
-        <TabsContent class="flex flex-col" value="Pinned">
-          <!-- Pinned Activities -->
-          <div
-
-              ref="allActivitiesDiv"
-              class="w-full"
-          >
-            <div
-                class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
-            >
-              <Activity
-                  v-for="entry in initialData"
-                  :key="entry[0]"
-                  :activities="getDataByActivities(entry[1].hash)"
-                  :manifest-activity="entry[1]"
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent class="flex flex-col" value="All Activities">
-          <!-- All Activities -->
-          <div ref="allActivitiesDiv" class="w-full">
-            <div
-                class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]">
-              <Activity
-                  v-for="entry in initialData"
-                  :key="entry[0]"
-                  :activities="getDataByActivities(entry[1].hash)"
-                  :manifest-activity="entry[1]"
-              />
-            </div>
-          </div>
-        </TabsContent>
-      </TabsRoot>
+      <div
+          ref="allActivitiesDiv"
+          class="w-full"
+      >
+        <div
+            class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
+        >
+          <Activity
+              v-for="entry in initialData"
+              :key="entry[0]"
+              :activities="getDataByActivities(entry[1].hash)"
+              :manifest-activity="entry[1]"
+          />
+        </div>
+      </div>
     </div>
 
     <FilterSidebar name="Sort Activities">
