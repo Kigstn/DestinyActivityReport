@@ -133,7 +133,7 @@ onMounted(() => {
 
             <ComboboxItem
                 v-for="(option, index) in value"
-                class="text-sm leading-none rounded-lg flex items-center h-6 px-6 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
+                class="text-sm leading-none rounded-lg flex items-center min-h-6 px-6 py-1 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
                 :key="index"
                 :value="option"
             >

@@ -5,7 +5,8 @@ import {
     getDestinyManifestSlice,
     getHistoricalStatsForAccount
 } from 'bungie-api-ts/destiny2';
-import {bungieClient} from "./bungieClient.ts";
+import {bungieClient} from "@/funcs/bungieClient";
+import {counter} from "@/funcs/utils";
 
 
 // convert to correct membership type
@@ -171,6 +172,7 @@ export interface ManifestActivity {
     description: string,
     destination: string,
     imageUrl: string,
+    modeIconUrl: string,
     isPlaylist: boolean,
     isMatchmade: boolean,
     maxPlayers: number,
@@ -179,6 +181,9 @@ export interface ManifestActivity {
     redacted: boolean,
     blacklisted: boolean,
     tags: string[],
+
+    _activityTypeHash: string,
+    _directActivityModeHash: string,
 }
 
 export async function getManifestActivities(destinyManifest: DestinyManifest) {
@@ -190,6 +195,10 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityModeDefinition"]
     r = await fetch(url)
     const manifestActivityModes = await r.json()
+    const manifestActivityModesByName: {[id: string]: any} = {}
+    for (const [key, value] of Object.entries(manifestActivityModes)) {
+        manifestActivityModesByName[value.displayProperties.name] = value
+    }
 
     // get the activities
     url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityDefinition"]
@@ -197,12 +206,13 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     const res = await r.json()
 
     // only return the relevant data - otherwise it is too big
-    const data: { [name: string]: ManifestActivity } = {}
-    const dataModes = new Set()
+    let data: { [name: string]: ManifestActivity } = {}
+    const dataModes = []
     const dataTags = new Set()
 
     let dataMaxPlayers = 0
     const placeholderImageUrl = "https://www.bungie.net/img/theme/destiny/bgs/pgcrs/placeholder.jpg"
+    const placeholderModeImageUrl = "https://www.bungie.net/img/misc/missing_icon_d2.png"
     for (const [key, value] of Object.entries(res)) {
         if (typeof value === "object" && value !== null) {
             // get the correct name - this is a bit tricky, since we want to group some activities
@@ -235,6 +245,15 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 activityMode = manifestActivityModes[value.directActivityModeHash].displayProperties.name
             }
 
+            let modeIconUrl = placeholderModeImageUrl
+            if (activityMode in manifestActivityModesByName) {
+                modeIconUrl = "https://www.bungie.net" + manifestActivityModesByName[activityMode].displayProperties.icon
+            } else if (value.directActivityModeHash) {
+                if (manifestActivityModes[value.directActivityModeHash].displayProperties.icon) {
+                    modeIconUrl = "https://www.bungie.net" + manifestActivityModes[value.directActivityModeHash].displayProperties.icon
+                }
+            }
+
             // tags
             const tags = []
             if (value.isPvP) {
@@ -262,6 +281,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     description: value.displayProperties.description,
                     destination: value.destinationHash.toString(),
                     imageUrl: imageUrl,
+                    modeIconUrl: modeIconUrl,
                     isPlaylist: value.isPlaylist,
                     isMatchmade: isMatchmade,
                     maxPlayers: maxPlayers,
@@ -269,45 +289,67 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     isPvp: value.isPvP,
                     redacted: value.redacted,
                     blacklisted: value.blacklisted,
-                    tags: tags
+                    tags: tags,
+                    _activityTypeHash: value.activityTypeHash,
+                    _directActivityModeHash: value.directActivityModeHash,
                 }
+                dataModes.push(activityMode)
             }
 
-            dataModes.add(activityMode)
             if (maxPlayers > dataMaxPlayers) {
                 dataMaxPlayers = maxPlayers
             }
         }
     }
 
-    // sort them by mode and then by name
-    const partlySorted = Object.entries(data).sort((a, b) => {
-            if (a[1].activityMode > b[1].activityMode) {
-                return 1
-            } else if (a[1].activityMode == b[1].activityMode) {
-                return 0
+    // create "All MODE" activities for all activities with the same mode
+    // mode needs to have 3 distinct activities, otherwise this will not be done
+    const dataAdds: { [id: string]: ManifestActivity } = {}
+    const frequentModes = []
+    for (const [mode, n] of Object.entries(counter(dataModes))) {
+        if (n >= 3) frequentModes.push(mode)
+    }
+    for (const [oldName, entry] of Object.entries(data)) {
+        if (frequentModes.includes(entry.activityMode)) {
+            const name = `All - ${entry.activityMode}`
+
+            if (name in dataAdds) {
+                dataAdds[name].hash = [...entry.hash, ...dataAdds[name].hash]
             } else {
-                return -1
+                let imageUrl = placeholderImageUrl
+                if (entry._directActivityModeHash) {
+                    imageUrl = "https://www.bungie.net" + manifestActivityModes[entry._directActivityModeHash].pgcrImage
+                }
+
+                dataAdds[name] = {
+                    hash: entry.hash,
+                    name: name,
+                    description: name,
+                    destination: "Multiple Places",
+                    imageUrl: imageUrl,
+                    modeIconUrl: entry.modeIconUrl,
+                    isPlaylist: entry.isPlaylist,
+                    isMatchmade: entry.isMatchmade,
+                    maxPlayers: entry.maxPlayers,
+                    activityMode: entry.activityMode,
+                    isPvp: entry.isPvp,
+                    redacted: entry.redacted,
+                    blacklisted: entry.blacklisted,
+                    tags: entry.tags,
+                    _activityTypeHash: entry._activityTypeHash,
+                    _directActivityModeHash: entry._directActivityModeHash,
+                }
             }
         }
-    )
-    // if mode is same check name
+    }
+    data = {
+        ...data,
+        ...dataAdds,
+    }
+
     return {
-        activities: partlySorted.sort((a, b) => {
-            // check mode - if same check name
-            if (a[1].activityMode == b[1].activityMode) {
-                if (a[1].activityMode > b[1].activityMode) {
-                    return 1
-                } else if (a[1].activityMode == b[1].activityMode) {
-                    return 0
-                } else {
-                    return -1
-                }
-            } else {
-                return -1
-            }
-        }),
-        modes: [...dataModes],
+        activities: Object.entries(data),
+        modes: [...new Set(dataModes)],
         tags: [...dataTags],
         maxPlayers: dataMaxPlayers,
     }

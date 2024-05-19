@@ -13,10 +13,11 @@ defineProps<{
       :value="name"
   >
     <slot/>
-    <div class="flex gap-4 text-text_bright font-bold text-2xl text-shadow shadow-bg_site items-center">
+    <div class="flex gap-4 items-center">
       <h1 class="">
         {{ name }}
       </h1>
     </div>
+    <slot name="icon"/>
   </RadioGroupItem>
 </template>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import {specialTags, getActivities, getManifestActivities, type ManifestActivity} from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
@@ -8,12 +7,16 @@ import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
 import {RadioGroupRoot} from 'radix-vue'
-import {computed, reactive, type Ref, ref, watch} from "vue";
+import {reactive, type Ref, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
 import Sidebar from "@/components/UserView/Sidebar/Sidebar.vue";
 import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
 import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
+import SingleItem from "@/components/UserView/Sidebar/Filters/SingleItem.vue";
+
+type ActivityType = { [name: string]: ManifestActivity }
+
 
 const route = useRoute()
 
@@ -37,6 +40,7 @@ if (import.meta.env.DEV) {
     const {activities, modes, tags, maxPlayers} = await getManifestActivities(manifest.Response)
     destinyManifest.value.activities = activities
     destinyManifest.value.modes = modes
+    // @ts-ignore
     destinyManifest.value.tags = tags
     destinyManifest.value.maxPlayers = maxPlayers
 
@@ -53,6 +57,13 @@ if (pinnedActivities.value.size > 0) {
   currentTab = ref("All Activities")
 }
 
+// todo
+// pin some default activities on first site visit
+const firstSiteVisit = useLocalStorage("firstVisit", true)
+if (firstSiteVisit.value) {
+  // firstSiteVisit.value = false
+}
+
 // --------------------------------------------
 
 // sort data by activities
@@ -62,6 +73,82 @@ for (const entry of data) {
     dataByActivities[entry.activityDetails.referenceId] = []
   }
   dataByActivities[entry.activityDetails.referenceId].push(entry)
+}
+
+// --------------------------------------------
+// sorting
+
+// todo - whenever we can filter by clears / special clears. for that the information needs to be calculated earlier than it currently is
+// <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
+
+const activitySortingOptions = {
+  "Activity Info": [
+    "Activity Mode",
+    "Activity Name"
+  ]
+}
+const activitySortingType: Ref<"Activity Name" | "Activity Mode"> = ref("Activity Mode")
+const activitySortingMode: Ref<"Asc." | "Desc."> = ref("Asc.")
+
+function resetSorting() {
+  activitySortingType.value = "Activity Name"
+  activitySortingMode.value = "Asc."
+
+  resetActivitiesOnFilterChange()
+}
+
+const initialData: Ref<ActivityType[]> = ref([])
+let loadingData: ActivityType[] = []
+
+function sortedActivities(data: ActivityType[]) {
+  let sortedData: ActivityType[] = []
+  console.log(activitySortingType.value)
+
+  switch (activitySortingType.value) {
+    case "Activity Mode": {
+      // sort them by mode and then by name
+      const partlySorted = data.sort((a: ActivityType, b: ActivityType) => {
+            if (a[1].activityMode > b[1].activityMode) {
+              return 1
+            } else if (a[1].activityMode == b[1].activityMode) {
+              return 0
+            } else {
+              return -1
+            }
+          }
+      )
+      // if mode is same check name
+      sortedData = partlySorted.sort((a, b) => {
+        // check mode - if same check name
+        if (a[1].activityMode == b[1].activityMode) {
+          if (a[1].name > b[1].name) {
+            return 1
+          } else if (a[1].name == b[1].name) {
+            return 0
+          } else {
+            return -1
+          }
+        } else {
+          return -1
+        }
+      })
+      break
+    }
+
+    case "Activity Name": {
+      break
+    }
+
+    default: {
+      console.log("Sorting is fucked! :)")
+    }
+  }
+
+  if (activitySortingMode.value == "Asc.") {
+    return sortedData
+  } else {
+    return sortedData.reverse()
+  }
 }
 
 // --------------------------------------------
@@ -84,14 +171,9 @@ function resetFilters() {
 }
 
 // whenever the filter changes, load the activities
-const initialData: any = ref([])
-let loadingData: any = []
-
 function resetActivitiesOnFilterChange() {
-  const results = []
-  const resultsLoading = []
+  let filteredData: ActivityType[] = []
   let found = false
-  let i = 0
   for (const entry of destinyManifest.value.activities) {
     const data: ManifestActivity | any = entry[1]
     const activityData = getDataByActivities(data.hash)
@@ -156,32 +238,16 @@ function resetActivitiesOnFilterChange() {
       continue
     }
 
-    // split the entries between the ones to load instantly and the backup
-    i += 1
-    if (i > 12) {
-      resultsLoading.push(entry)
-    } else {
-      results.push(entry)
-    }
+    // @ts-ignore
+    filteredData.push(entry)
+    filteredData = sortedActivities(filteredData)
+
+    // split into parts
+    splitActivities(filteredData)
   }
-  loadingData = resultsLoading
-  initialData.value = results
 }
 
 resetActivitiesOnFilterChange()
-
-// --------------------------------------------
-// sorting
-
-// todo - whenever we can filter by clears / special clears. for that the information needs to be calculated earlier than it currently is
-// <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
-
-type AllowedSortingType = "name"
-const activitySortingType: Ref<AllowedSortingType> = ref("name")
-
-function sortedActivities() {
-  return initialData.value
-}
 
 // --------------------------------------------
 
@@ -205,6 +271,24 @@ watch(
       }
     },
 )
+
+// split the entries between the ones to load instantly and the backup
+function splitActivities(data: ActivityType[]) {
+  const results: ActivityType[] = []
+  const resultsLoading: ActivityType[] = []
+  let i = 0
+  for (const entry of data) {
+    i += 1
+    if (i > 12) {
+      resultsLoading.push(entry)
+    } else {
+      results.push(entry)
+    }
+  }
+
+  loadingData = resultsLoading
+  initialData.value = results
+}
 
 // load more activities if scrolled down
 function onLoadMore() {
@@ -304,7 +388,7 @@ function getDataByActivities(hashes: string[]) {
             class="clickable mt-4 p-2 shrink !text-text_bright"
             @click="resetFilters()"
         >
-          Reset Filters
+          Reset
         </button>
       </div>
     </Sidebar>
@@ -315,7 +399,7 @@ function getDataByActivities(hashes: string[]) {
           :default-value="currentTab"
           orientation="vertical"
           @update:modelValue="resetActivitiesOnFilterChange()"
-          class="grid grid-cols-2 gap-2"
+          class="grid grid-cols-2 gap-2 text-text_bright font-bold text-2xl text-shadow shadow-bg_site"
       >
         <TopicBar name="Pinned">
           <svg width="30" height="30" viewBox="0 0 15 15" fill="none"
@@ -352,7 +436,7 @@ function getDataByActivities(hashes: string[]) {
           class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
       >
         <Activity
-            v-for="entry in sortedActivities()"
+            v-for="entry in initialData"
             :key="entry[0]"
             :activities="getDataByActivities(entry[1].hash)"
             :manifest-activity="entry[1]"
@@ -374,17 +458,71 @@ function getDataByActivities(hashes: string[]) {
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 shrink 3xl:w-40 overflow-hidden"/>
-    <!--    <Sidebar name="Sort Activities">-->
-    <!--      <template v-slot:icon>-->
-    <!--        <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-    <!--          <path-->
-    <!--              d="M7.49999 3.09998C7.27907 3.09998 7.09999 3.27906 7.09999 3.49998C7.09999 3.72089 7.27907 3.89998 7.49999 3.89998H14.5C14.7209 3.89998 14.9 3.72089 14.9 3.49998C14.9 3.27906 14.7209 3.09998 14.5 3.09998H7.49999ZM7.49998 5.1C7.27907 5.1 7.09998 5.27908 7.09998 5.5C7.09998 5.72091 7.27907 5.9 7.49998 5.9H14.5C14.7209 5.9 14.9 5.72091 14.9 5.5C14.9 5.27908 14.7209 5.1 14.5 5.1H7.49998ZM7.1 7.5C7.1 7.27908 7.27909 7.1 7.5 7.1H14.5C14.7209 7.1 14.9 7.27908 14.9 7.5C14.9 7.72091 14.7209 7.9 14.5 7.9H7.5C7.27909 7.9 7.1 7.72091 7.1 7.5ZM7.49998 9.1C7.27907 9.1 7.09998 9.27908 7.09998 9.5C7.09998 9.72091 7.27907 9.9 7.49998 9.9H14.5C14.7209 9.9 14.9 9.72091 14.9 9.5C14.9 9.27908 14.7209 9.1 14.5 9.1H7.49998ZM7.09998 11.5C7.09998 11.2791 7.27907 11.1 7.49998 11.1H14.5C14.7209 11.1 14.9 11.2791 14.9 11.5C14.9 11.7209 14.7209 11.9 14.5 11.9H7.49998C7.27907 11.9 7.09998 11.7209 7.09998 11.5ZM2.5 9.25003L5 6.00003H0L2.5 9.25003Z"-->
-    <!--              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>-->
-    <!--        </svg>-->
-    <!--      </template>-->
-    <!--      -->
-    <!--      SORT STUFF-->
-    <!--    </Sidebar>-->
+    <Sidebar name="Sort Activities">
+      <template v-slot:icon>
+        <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+              d="M7.49999 3.09998C7.27907 3.09998 7.09999 3.27906 7.09999 3.49998C7.09999 3.72089 7.27907 3.89998 7.49999 3.89998H14.5C14.7209 3.89998 14.9 3.72089 14.9 3.49998C14.9 3.27906 14.7209 3.09998 14.5 3.09998H7.49999ZM7.49998 5.1C7.27907 5.1 7.09998 5.27908 7.09998 5.5C7.09998 5.72091 7.27907 5.9 7.49998 5.9H14.5C14.7209 5.9 14.9 5.72091 14.9 5.5C14.9 5.27908 14.7209 5.1 14.5 5.1H7.49998ZM7.1 7.5C7.1 7.27908 7.27909 7.1 7.5 7.1H14.5C14.7209 7.1 14.9 7.27908 14.9 7.5C14.9 7.72091 14.7209 7.9 14.5 7.9H7.5C7.27909 7.9 7.1 7.72091 7.1 7.5ZM7.49998 9.1C7.27907 9.1 7.09998 9.27908 7.09998 9.5C7.09998 9.72091 7.27907 9.9 7.49998 9.9H14.5C14.7209 9.9 14.9 9.72091 14.9 9.5C14.9 9.27908 14.7209 9.1 14.5 9.1H7.49998ZM7.09998 11.5C7.09998 11.2791 7.27907 11.1 7.49998 11.1H14.5C14.7209 11.1 14.9 11.2791 14.9 11.5C14.9 11.7209 14.7209 11.9 14.5 11.9H7.49998C7.27907 11.9 7.09998 11.7209 7.09998 11.5ZM2.5 9.25003L5 6.00003H0L2.5 9.25003Z"
+              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+        </svg>
+      </template>
+
+      <SidebarSection name="Sort By" :right-side="true">
+        <!-- Filter by: Tags -->
+        <SingleItem
+            placeholder="Sorting Type"
+            :def="activitySortingType"
+            :options="activitySortingOptions"
+            @filterChange="(n: any) => {
+              activitySortingType = n
+              resetActivitiesOnFilterChange()
+            }"
+        />
+      </SidebarSection>
+
+      <SidebarSection name="Direction" :right-side="true">
+        <!-- Sort direction -->
+        <RadioGroupRoot
+            v-model="activitySortingMode"
+            :default-value="activitySortingMode"
+            orientation="vertical"
+            @update:modelValue="resetActivitiesOnFilterChange()"
+            class="grid grid-cols-2 gap-2 h-8"
+        >
+          <TopicBar
+              class="!h-8"
+              name="Asc."
+          >
+            <template v-slot:icon>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M7.14645 2.14645C7.34171 1.95118 7.65829 1.95118 7.85355 2.14645L11.8536 6.14645C12.0488 6.34171 12.0488 6.65829 11.8536 6.85355C11.6583 7.04882 11.3417 7.04882 11.1464 6.85355L8 3.70711L8 12.5C8 12.7761 7.77614 13 7.5 13C7.22386 13 7 12.7761 7 12.5L7 3.70711L3.85355 6.85355C3.65829 7.04882 3.34171 7.04882 3.14645 6.85355C2.95118 6.65829 2.95118 6.34171 3.14645 6.14645L7.14645 2.14645Z"
+                    fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+              </svg>
+            </template>
+          </TopicBar>
+          <TopicBar
+              class="!h-8"
+              name="Desc."
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                  d="M7.5 2C7.77614 2 8 2.22386 8 2.5L8 11.2929L11.1464 8.14645C11.3417 7.95118 11.6583 7.95118 11.8536 8.14645C12.0488 8.34171 12.0488 8.65829 11.8536 8.85355L7.85355 12.8536C7.75979 12.9473 7.63261 13 7.5 13C7.36739 13 7.24021 12.9473 7.14645 12.8536L3.14645 8.85355C2.95118 8.65829 2.95118 8.34171 3.14645 8.14645C3.34171 7.95118 3.65829 7.95118 3.85355 8.14645L7 11.2929L7 2.5C7 2.22386 7.22386 2 7.5 2Z"
+                  fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+            </svg>
+          </TopicBar>
+        </RadioGroupRoot>
+      </SidebarSection>
+
+      <!-- todo loading bar since this can take a second-->
+      <div class="flex justify-center">
+        <button
+            class="clickable mt-4 p-2 shrink !text-text_bright"
+            @click="resetSorting()"
+        >
+          Reset
+        </button>
+      </div>
+    </Sidebar>
   </div>
 </template>

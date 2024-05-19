@@ -135,10 +135,16 @@ if (activityTimes.length != 0) {
             {{ props.manifestActivity.name }}
           </div>
 
-          <!-- todo maybe icon of mode - if exists -->
           <!-- Activity Mode -->
-          <div class="text-sm font-medium text-shadow shadow-bg_box">
-            {{ props.manifestActivity.activityMode }}
+          <div class="flex gap-1 text-sm font-medium text-shadow shadow-bg_box">
+            <img
+                class="h-5"
+                :src="props.manifestActivity.modeIconUrl"
+                alt="Icon"
+            >
+            <p>
+              {{ props.manifestActivity.activityMode }}
+            </p>
           </div>
         </div>
 

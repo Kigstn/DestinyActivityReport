@@ -20,9 +20,12 @@ export function formatTime(x: number | null) {
     }
 }
 
-export function hasIntersection(arr1: string[], arr2: string[]) {
-    return Boolean(arr1.filter(element => arr2.includes(element)))
+export function counter(array: string[]) {
+    let count: { [id: string]: number } = {}
+    array.forEach(val => count[val] = (count[val] || 0) + 1)
+    return count
 }
+
 
 export function useDebouncedRef(value: any, callback: CallableFunction | undefined) {
     let timeout: number | undefined

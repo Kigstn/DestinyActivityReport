@@ -13,7 +13,7 @@ defineProps<{
     <slot/>
   </div>
 
-  <div class="flex flex-col 3xl:hidden ">
+  <div class="flex flex-col 3xl:hidden">
     <PopoverRoot>
       <Tooltip>
         <template v-slot:hoverable>
