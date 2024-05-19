@@ -143,6 +143,16 @@ function sortedActivities(data: ActivityType[]) {
     }
 
     case "Activity Name": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            if (a[1].name > b[1].name) {
+              return 1
+            } else if (a[1].name == b[1].name) {
+              return 0
+            } else {
+              return -1
+            }
+          }
+      )
       break
     }
 
