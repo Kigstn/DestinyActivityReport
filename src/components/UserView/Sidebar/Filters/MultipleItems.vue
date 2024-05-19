@@ -64,7 +64,7 @@ onMounted(() => {
     </div>
 
     <ComboboxAnchor
-        class="clickable p-2 pt-6 w-60 3xl:w-40 inline-flex items-center justify-between leading-none min-h-14 outline-none"
+        class="clickable p-2 pt-6 w-60 3xl:w-full inline-flex items-center justify-between leading-none min-h-14 outline-none"
     >
       <TagsInputRoot
           v-slot="{ modelValue: tags }"
@@ -109,7 +109,7 @@ onMounted(() => {
         <ComboboxGroup v-if="Array.isArray(options)">
           <ComboboxItem
               v-for="(option, index) in options"
-              class="text-sm leading-none rounded-lg flex items-center h-6 px-6 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
+              class="text-sm leading-none rounded-lg flex items-center min-h-6 px-6 py-1 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
               :key="index"
               :value="option"
           >

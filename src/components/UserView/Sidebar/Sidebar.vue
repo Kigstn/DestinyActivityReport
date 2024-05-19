@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="hidden 3xl:flex 3xl:flex-col gap-4 shrink w-48 overflow-hidden bg-green-400">
+  <div class="hidden 3xl:flex 3xl:flex-col gap-4 shrink w-40 overflow-hidden mt-20">
     <slot/>
   </div>
 

@@ -8,9 +8,9 @@ import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
 import {RadioGroupRoot} from 'radix-vue'
-import {reactive, type Ref, ref, watch} from "vue";
+import {computed, reactive, type Ref, ref, watch} from "vue";
 import TopicBar from "@/components/UserView/TopicBar.vue";
-import FilterSidebar from "@/components/UserView/Sidebar/FilterSidebar.vue";
+import Sidebar from "@/components/UserView/Sidebar/Sidebar.vue";
 import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
 import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
@@ -45,8 +45,13 @@ if (import.meta.env.DEV) {
 }
 
 // tracked what is pinned (by name)
-const currentTab = ref("Pinned")
 const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
+let currentTab: Ref<string>
+if (pinnedActivities.value.size > 0) {
+  currentTab = ref("Pinned")
+} else {
+  currentTab = ref("All Activities")
+}
 
 // --------------------------------------------
 
@@ -62,12 +67,21 @@ for (const entry of data) {
 // --------------------------------------------
 // filters
 
-// updates to the activityModes
 const activityNameFilter: Ref<string> = ref("")
 const activityModeFilter: Ref<string[]> = ref([])
 const activityTagsFilter: Ref<string[]> = ref([])
 const achievementTagsFilter: Ref<string[]> = ref([])
 const activityMaxPlayerCountFilter: Ref<number> = ref(destinyManifest.value.maxPlayers)
+
+function resetFilters() {
+  activityNameFilter.value = ""
+  activityModeFilter.value = []
+  activityTagsFilter.value = []
+  achievementTagsFilter.value = []
+  activityMaxPlayerCountFilter.value = destinyManifest.value.maxPlayers
+
+  resetActivitiesOnFilterChange()
+}
 
 // whenever the filter changes, load the activities
 const initialData: any = ref([])
@@ -157,6 +171,19 @@ function resetActivitiesOnFilterChange() {
 resetActivitiesOnFilterChange()
 
 // --------------------------------------------
+// sorting
+
+// todo - whenever we can filter by clears / special clears. for that the information needs to be calculated earlier than it currently is
+// <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
+
+type AllowedSortingType = "name"
+const activitySortingType: Ref<AllowedSortingType> = ref("name")
+
+function sortedActivities() {
+  return initialData.value
+}
+
+// --------------------------------------------
 
 // make this an infinite scroll
 // read the window position
@@ -209,7 +236,7 @@ function getDataByActivities(hashes: string[]) {
 
 <template>
   <div class="flex w-full justify-between gap-4 h-full px-4">
-    <FilterSidebar name="Filter Activities">
+    <Sidebar name="Filter Activities">
       <template v-slot:icon>
         <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
@@ -269,7 +296,18 @@ function getDataByActivities(hashes: string[]) {
             @filterChange="resetActivitiesOnFilterChange()"
         />
       </SidebarSection>
-    </FilterSidebar>
+
+      <!-- Reset Filters -->
+
+      <div class="flex justify-center">
+        <button
+            class="clickable mt-4 p-2 shrink !text-text_bright"
+            @click="resetFilters()"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </Sidebar>
 
     <div class="flex flex-col max-w-[1600px] grow">
       <RadioGroupRoot
@@ -314,7 +352,7 @@ function getDataByActivities(hashes: string[]) {
           class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
       >
         <Activity
-            v-for="entry in initialData"
+            v-for="entry in sortedActivities()"
             :key="entry[0]"
             :activities="getDataByActivities(entry[1].hash)"
             :manifest-activity="entry[1]"
@@ -336,20 +374,17 @@ function getDataByActivities(hashes: string[]) {
       </div>
     </div>
 
-    <FilterSidebar name="Sort Activities">
-      <template v-slot:icon>
-        <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-              d="M7.49999 3.09998C7.27907 3.09998 7.09999 3.27906 7.09999 3.49998C7.09999 3.72089 7.27907 3.89998 7.49999 3.89998H14.5C14.7209 3.89998 14.9 3.72089 14.9 3.49998C14.9 3.27906 14.7209 3.09998 14.5 3.09998H7.49999ZM7.49998 5.1C7.27907 5.1 7.09998 5.27908 7.09998 5.5C7.09998 5.72091 7.27907 5.9 7.49998 5.9H14.5C14.7209 5.9 14.9 5.72091 14.9 5.5C14.9 5.27908 14.7209 5.1 14.5 5.1H7.49998ZM7.1 7.5C7.1 7.27908 7.27909 7.1 7.5 7.1H14.5C14.7209 7.1 14.9 7.27908 14.9 7.5C14.9 7.72091 14.7209 7.9 14.5 7.9H7.5C7.27909 7.9 7.1 7.72091 7.1 7.5ZM7.49998 9.1C7.27907 9.1 7.09998 9.27908 7.09998 9.5C7.09998 9.72091 7.27907 9.9 7.49998 9.9H14.5C14.7209 9.9 14.9 9.72091 14.9 9.5C14.9 9.27908 14.7209 9.1 14.5 9.1H7.49998ZM7.09998 11.5C7.09998 11.2791 7.27907 11.1 7.49998 11.1H14.5C14.7209 11.1 14.9 11.2791 14.9 11.5C14.9 11.7209 14.7209 11.9 14.5 11.9H7.49998C7.27907 11.9 7.09998 11.7209 7.09998 11.5ZM2.5 9.25003L5 6.00003H0L2.5 9.25003Z"
-              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-        </svg>
-      </template>
-
-
-      <!-- todo -->
-      <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
-
-      SORT STUFF
-    </FilterSidebar>
+    <div class="flex flex-col gap-4 shrink 3xl:w-40 overflow-hidden"/>
+    <!--    <Sidebar name="Sort Activities">-->
+    <!--      <template v-slot:icon>-->
+    <!--        <svg width="30" height="30" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+    <!--          <path-->
+    <!--              d="M7.49999 3.09998C7.27907 3.09998 7.09999 3.27906 7.09999 3.49998C7.09999 3.72089 7.27907 3.89998 7.49999 3.89998H14.5C14.7209 3.89998 14.9 3.72089 14.9 3.49998C14.9 3.27906 14.7209 3.09998 14.5 3.09998H7.49999ZM7.49998 5.1C7.27907 5.1 7.09998 5.27908 7.09998 5.5C7.09998 5.72091 7.27907 5.9 7.49998 5.9H14.5C14.7209 5.9 14.9 5.72091 14.9 5.5C14.9 5.27908 14.7209 5.1 14.5 5.1H7.49998ZM7.1 7.5C7.1 7.27908 7.27909 7.1 7.5 7.1H14.5C14.7209 7.1 14.9 7.27908 14.9 7.5C14.9 7.72091 14.7209 7.9 14.5 7.9H7.5C7.27909 7.9 7.1 7.72091 7.1 7.5ZM7.49998 9.1C7.27907 9.1 7.09998 9.27908 7.09998 9.5C7.09998 9.72091 7.27907 9.9 7.49998 9.9H14.5C14.7209 9.9 14.9 9.72091 14.9 9.5C14.9 9.27908 14.7209 9.1 14.5 9.1H7.49998ZM7.09998 11.5C7.09998 11.2791 7.27907 11.1 7.49998 11.1H14.5C14.7209 11.1 14.9 11.2791 14.9 11.5C14.9 11.7209 14.7209 11.9 14.5 11.9H7.49998C7.27907 11.9 7.09998 11.7209 7.09998 11.5ZM2.5 9.25003L5 6.00003H0L2.5 9.25003Z"-->
+    <!--              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>-->
+    <!--        </svg>-->
+    <!--      </template>-->
+    <!--      -->
+    <!--      SORT STUFF-->
+    <!--    </Sidebar>-->
   </div>
 </template>

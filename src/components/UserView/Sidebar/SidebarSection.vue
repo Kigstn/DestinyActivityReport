@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import {watch} from "vue";
 
 defineProps<{
-  name: string | undefined,
+  name?: string | undefined,
 }>()
 </script>
 
