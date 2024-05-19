@@ -48,20 +48,28 @@ if (import.meta.env.DEV) {
   }
 }
 
-// tracked what is pinned (by name)
+// --------------------------------------------
+
+const firstSiteVisit = useLocalStorage("firstVisit", true)
 const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
+
+// pin some default activities on first site visit
+if (firstSiteVisit.value && pinnedActivities.value.size == 0) {
+  for (const entry of destinyManifest.value.activities) {
+    const data: ManifestActivity | any = entry[1]
+    if (data.name.includes("All - ")) {
+      pinnedActivities.value.add(data.name)
+    }
+  }
+  firstSiteVisit.value = false
+}
+
+// tracked what is pinned (by name)
 let currentTab: Ref<string>
 if (pinnedActivities.value.size > 0) {
   currentTab = ref("Pinned")
 } else {
   currentTab = ref("All Activities")
-}
-
-// todo
-// pin some default activities on first site visit
-const firstSiteVisit = useLocalStorage("firstVisit", true)
-if (firstSiteVisit.value) {
-  // firstSiteVisit.value = false
 }
 
 // --------------------------------------------
@@ -102,7 +110,6 @@ let loadingData: ActivityType[] = []
 
 function sortedActivities(data: ActivityType[]) {
   let sortedData: ActivityType[] = []
-  console.log(activitySortingType.value)
 
   switch (activitySortingType.value) {
     case "Activity Mode": {
@@ -240,11 +247,11 @@ function resetActivitiesOnFilterChange() {
 
     // @ts-ignore
     filteredData.push(entry)
-    filteredData = sortedActivities(filteredData)
-
-    // split into parts
-    splitActivities(filteredData)
   }
+
+  // sort and split into parts
+  filteredData = sortedActivities(filteredData)
+  splitActivities(filteredData)
 }
 
 resetActivitiesOnFilterChange()
@@ -422,9 +429,8 @@ function getDataByActivities(hashes: string[]) {
         </TopicBar>
       </RadioGroupRoot>
 
-
       <div
-          v-if="initialData.length === 0"
+          v-if="initialData.length == 0"
           class="italic text-text_dull text-lg p-2 text-center pt-16 flex flex-col gap-2"
       >
         <p>Imagine some cool activity stats here...</p>
