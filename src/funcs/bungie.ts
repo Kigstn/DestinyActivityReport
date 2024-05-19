@@ -1,9 +1,10 @@
 import {
+    DestinyComponentType,
     type DestinyHistoricalStatsPeriodGroup,
     type DestinyManifest,
     getActivityHistory,
     getDestinyManifestSlice,
-    getHistoricalStatsForAccount
+    getHistoricalStatsForAccount, getProfile
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
@@ -17,6 +18,8 @@ const membershipTypes: { [id: string]: number } = {
     "stadia": 5,
     "egs": 6,
 }
+const _swap = obj => Object.fromEntries(Object.entries(obj).map(a => a.reverse()))
+const membershipTypesByInt = _swap(membershipTypes)
 
 function convertMembershipType(membershipType: string | number): number {
     const err = new Error("Unknown MembershipType")
@@ -30,11 +33,26 @@ function convertMembershipType(membershipType: string | number): number {
             throw err
         }
     }
-    if (!(membershipType in [1, 2, 3, 5, 6])) {
+    if (!(membershipType in [...Object.keys(membershipTypesByInt)])) {
         throw err
     }
 
     return membershipType
+}
+
+export function convertMembershipTypeToStr(membershipType: number | string): string {
+    const err = new Error("Unknown MembershipType")
+
+    if (membershipType in membershipTypesByInt) {
+        return membershipTypesByInt[membershipType]
+    } else if (typeof membershipType == "string") {
+        try {
+            return convertMembershipTypeToStr(parseInt(membershipType))
+        } catch (e) {
+            throw err
+        }
+    }
+    throw err
 }
 
 // ---
@@ -195,7 +213,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
     url = 'https://www.bungie.net' + destinyManifest.jsonWorldComponentContentPaths["en"]["DestinyActivityModeDefinition"]
     r = await fetch(url)
     const manifestActivityModes = await r.json()
-    const manifestActivityModesByName: {[id: string]: any} = {}
+    const manifestActivityModesByName: { [id: string]: any } = {}
     for (const [key, value] of Object.entries(manifestActivityModes)) {
         manifestActivityModesByName[value.displayProperties.name] = value
     }
@@ -353,6 +371,79 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
         tags: [...dataTags],
         maxPlayers: dataMaxPlayers,
     }
+}
+
+export interface PlayerProfile {
+    membershipType: string
+    membershipTypes: string[]
+    membershipId: string
+    iconUrl: string
+    emblemUrl: string
+    name: string
+    code: string
+    lastPlayed: Date,
+    light: number,
+    totalMinutesPlayed: number
+}
+
+export async function getPlayerInfo(destinyMembershipId: any, membershipType: any): Promise<PlayerProfile> {
+    membershipType = convertMembershipType(membershipType)
+
+    const profileData = await getProfile(bungieClient, {
+        components: [100, 200],
+        membershipType: membershipType,
+        destinyMembershipId: destinyMembershipId,
+    })
+
+    membershipType = profileData.Response.profile.data?.userInfo.membershipType.toString()
+    if (profileData.Response.profile.data?.userInfo.crossSaveOverride) {
+        membershipType = profileData.Response.profile.data?.userInfo.crossSaveOverride
+    }
+    let displayName = profileData.Response.profile.data?.userInfo.displayName
+    if (profileData.Response.profile.data?.userInfo.bungieGlobalDisplayName) {
+        displayName = profileData.Response.profile.data?.userInfo.bungieGlobalDisplayName
+    }
+    let code = "0000"
+    if (profileData.Response.profile.data?.userInfo.bungieGlobalDisplayNameCode) {
+        code = profileData.Response.profile.data?.userInfo.bungieGlobalDisplayNameCode.toString()
+    }
+
+    const membershipTypes = []
+    for (const e of profileData.Response.profile.data?.userInfo.applicableMembershipTypes) {
+        membershipTypes.push(e.toString())
+    }
+
+    let iconUrl
+    let emblemUrl
+    let lastPlayed
+    let light = 0
+    let totalMinutesPlayed = 0
+    for (const [key, data] of Object.entries(profileData.Response.characters.data)) {
+        if (lastPlayed == undefined) {
+            lastPlayed = new Date(data.dateLastPlayed)
+            iconUrl= "https://www.bungie.net" + data.emblemPath
+            emblemUrl= "https://www.bungie.net" + data.emblemBackgroundPath
+        }
+        if (data.light) {
+            light = data.light
+        }
+        totalMinutesPlayed += parseInt(data.minutesPlayedTotal)
+    }
+
+    return {
+        membershipType: membershipType,
+        membershipTypes: membershipTypes,
+        membershipId: profileData.Response.profile.data?.userInfo.membershipId,
+        name: displayName,
+        code: code,
+        iconUrl: iconUrl,
+        emblemUrl: emblemUrl,
+        lastPlayed: lastPlayed,
+        light: light,
+        totalMinutesPlayed: totalMinutesPlayed
+    }
+
+
 }
 
 

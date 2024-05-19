@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import {RouterLink, RouterView} from 'vue-router'
+import {RouterLink, RouterView, useRoute} from 'vue-router'
 import {version} from '../package.json'
-import {ref} from "vue";
+import {type Ref, ref} from "vue";
+import {useLocalStorage} from "@vueuse/core";
+import FavoriteProfile from "@/components/FavoriteProfile.vue";
+import Tooltip from "@/components/UserView/Tooltip.vue";
+import type {PlayerProfile} from "@/funcs/bungie";
+import {store} from "@/funcs/store";
+
+const route = useRoute()
 
 const userSearch = ref("")
+
+const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
+
+function addToFavorites() {
+  favoriteAccounts.value[store.currentAccount.membershipId] = store.currentAccount
+}
 
 function searchUser() {
   if (!userSearch.value) {
@@ -18,6 +31,7 @@ function searchUser() {
   <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site">
     <header class="w-screen bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-40">
       <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-6">
+        <!-- Home Button-->
         <RouterLink to="/" class="flex gap-4 items-center text-accent font-bold text-xl">
           <!-- todo logo -->
           <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,6 +43,7 @@ function searchUser() {
           Destiny2 Activity Report
         </RouterLink>
 
+        <!-- Search Bar-->
         <div
             class="flex items-center text-text_bright p-1 px-4 gap-2 grow max-w-[50%]"
         >
@@ -58,10 +73,46 @@ function searchUser() {
             </svg>
           </button>
         </div>
-      </div>
 
-      <div>
-        Favorite Account Quick Link
+        <!-- Favorite Accounts-->
+        <div class="flex gap-2">
+          <Tooltip v-if="Object.keys(favoriteAccounts).length < 3 && route.meta.canPinUser && store.currentAccount && !(store.currentAccount.membershipId in favoriteAccounts)">
+            <template v-slot:hoverable>
+              <div class="h-14 w-14 flex justify-center">
+                <div class="flex-col flex justify-center">
+                  <button
+                      class="text-accent h-10 w-10 text-sm clickable flex justify-center items-center"
+                      @click="addToFavorites"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 15 15" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                      <path
+                          d="M10.3285 1.13607C10.1332 0.940809 9.81662 0.940808 9.62136 1.13607C9.42609 1.33133 9.42609 1.64792 9.62136 1.84318L10.2744 2.49619L5.42563 6.13274L4.31805 5.02516C4.12279 4.8299 3.80621 4.8299 3.61095 5.02516C3.41569 5.22042 3.41569 5.537 3.61095 5.73226L5.02516 7.14648L6.08582 8.20714L2.81545 11.4775C2.62019 11.6728 2.62019 11.9894 2.81545 12.1846C3.01072 12.3799 3.3273 12.3799 3.52256 12.1846L6.79293 8.91425L7.85359 9.97491L9.2678 11.3891C9.46306 11.5844 9.77965 11.5844 9.97491 11.3891C10.1702 11.1939 10.1702 10.8773 9.97491 10.682L8.86733 9.57443L12.5039 4.7257L13.1569 5.37871C13.3522 5.57397 13.6687 5.57397 13.864 5.37871C14.0593 5.18345 14.0593 4.86687 13.864 4.6716L12.8033 3.61094L11.3891 2.19673L10.3285 1.13607ZM6.13992 6.84702L10.9887 3.21047L11.7896 4.01142L8.15305 8.86015L6.13992 6.84702Z"
+                          fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </template>
+
+            <template v-slot:content>
+              <p class="text-lg">
+                Pin Current User
+              </p>
+            </template>
+          </Tooltip>
+
+          <FavoriteProfile
+              v-for="entry in favoriteAccounts"
+              :membershipId="entry.membershipId"
+              :membershipType="entry.membershipType"
+              :name="entry.name"
+              :code="entry.code"
+              :icon-url="entry.iconUrl"
+
+              @unpin="delete favoriteAccounts[entry.membershipId]"
+          />
+        </div>
       </div>
     </header>
 

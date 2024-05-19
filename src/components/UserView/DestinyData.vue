@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import {specialTags, getActivities, getManifestActivities, type ManifestActivity} from "@/funcs/bungie";
+import {
+  specialTags,
+  getActivities,
+  getManifestActivities,
+  type ManifestActivity,
+  getPlayerInfo,
+  type PlayerProfile
+} from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
@@ -14,6 +21,7 @@ import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
 import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
 import SingleItem from "@/components/UserView/Sidebar/Filters/SingleItem.vue";
+import {store} from "@/funcs/store";
 
 type ActivityType = { [name: string]: ManifestActivity }
 
@@ -23,6 +31,17 @@ const route = useRoute()
 const membershipType = route.params.membershipType
 const membershipId = route.params.membershipId
 
+
+// get player info
+// @ts-ignore
+const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
+store.currentAccount = await getPlayerInfo(membershipId, membershipType)
+
+if (store.currentAccount.membershipId in favoriteAccounts.value) {
+  favoriteAccounts.value[store.currentAccount.membershipId] = store.currentAccount
+}
+
+// get activities of player
 const data = await getActivities(membershipId, membershipType)
 
 // get the manifest data for the activities
@@ -167,7 +186,7 @@ function sortedActivities(data: ActivityType[]) {
     return sortedData.reverse()
   }
 }
-
+//todo reset button doesnt work for everything
 // --------------------------------------------
 // filters
 
