@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import {ref, watch, watchEffect} from "vue";
 import {useDebouncedRef} from "@/funcs/utils";
 
 const props = defineProps<{
   name: string,
+  content: string
 }>()
 const emit = defineEmits(["filterChange"])
 
-const value = useDebouncedRef("", filterChange)
+const content = useDebouncedRef(props.content, filterChange)
+watchEffect(() => {content.value = props.content})
 
 function filterChange () {
-  emit("filterChange", value.value)
+  emit("filterChange", content.value)
 }
 </script>
 
@@ -20,7 +22,7 @@ function filterChange () {
       {{ name }}
     </div>
     <input
-        v-model="value"
+        v-model="content"
         class="w-full bg-transparent focus-visible:outline-none px-2 pb-2 text-text_bright flex text-sm"
         placeholder="Type here..."
     >

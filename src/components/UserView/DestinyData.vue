@@ -2,15 +2,12 @@
 import {
   specialTags,
   getActivities,
-  getManifestActivities,
   type ManifestActivity,
   getPlayerInfo,
-  type PlayerProfile
+  type PlayerProfile,
 } from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
-import {getDestinyManifest} from "bungie-api-ts/destiny2";
-import {bungieClient} from "@/funcs/bungieClient";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
 import {RadioGroupRoot} from 'radix-vue'
@@ -21,10 +18,17 @@ import SidebarSection from "@/components/UserView/Sidebar/SidebarSection.vue";
 import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue";
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
 import SingleItem from "@/components/UserView/Sidebar/Filters/SingleItem.vue";
-import {store} from "@/funcs/store";
+import {
+  playerStore,
+  userFilterStore,
+  useDestinyManifestStore,
+  userPinnedActivitiesStore,
+  userSortingStore
+} from "@/funcs/store";
 import UserSummary from "@/components/UserView/Sidebar/UserSummary.vue";
 
-type ActivityType = { [name: string]: ManifestActivity }
+
+type ActivityType = [string, ManifestActivity]
 
 
 const route = useRoute()
@@ -32,61 +36,30 @@ const route = useRoute()
 const membershipType = route.params.membershipType
 const membershipId = route.params.membershipId
 
+// use stores
+const destinyManifest = useDestinyManifestStore()
+const filterStore = userFilterStore()
+const sortingStore = userSortingStore()
+const pinnedActivitiesStore = userPinnedActivitiesStore()
+
+
+// todo can we use hot reloading with RouterLink? Would be neat
 
 // get player info
 // @ts-ignore
 const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
-store.currentAccount = await getPlayerInfo(membershipId, membershipType)
+playerStore.currentAccount = await getPlayerInfo(membershipId, membershipType)
 
-if (store.currentAccount.membershipId in favoriteAccounts.value) {
-  favoriteAccounts.value[store.currentAccount.membershipId] = store.currentAccount
+if (playerStore.currentAccount.membershipId in favoriteAccounts.value) {
+  favoriteAccounts.value[playerStore.currentAccount.membershipId] = playerStore.currentAccount
 }
 
 // get activities of player
 const data = await getActivities(membershipId, membershipType)
 
-// get the manifest data for the activities
-// make sure to check if the version changed - else do not re-download
-const destinyManifest = useLocalStorage("destinyManifest", {
-  version: "empty",
-  activities: [["emptyKey", {}]],
-  modes: ["empty"],
-  tags: ["empty"],
-  maxPlayers: 0,
-})
-if (import.meta.env.DEV) {
-  const manifest = await getDestinyManifest(bungieClient)
-  if (manifest.Response.version != destinyManifest.value.version) {
-    const {activities, modes, tags, maxPlayers} = await getManifestActivities(manifest.Response)
-    destinyManifest.value.activities = activities
-    destinyManifest.value.modes = modes
-    // @ts-ignore
-    destinyManifest.value.tags = tags
-    destinyManifest.value.maxPlayers = maxPlayers
-
-    destinyManifest.value.version = manifest.Response.version
-  }
-}
-
-// --------------------------------------------
-
-const firstSiteVisit = useLocalStorage("firstVisit", true)
-const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
-
-// pin some default activities on first site visit
-if (firstSiteVisit.value && pinnedActivities.value.size == 0) {
-  for (const entry of destinyManifest.value.activities) {
-    const data: ManifestActivity | any = entry[1]
-    if (data.name.includes("All - ")) {
-      pinnedActivities.value.add(data.name)
-    }
-  }
-  firstSiteVisit.value = false
-}
-
 // tracked what is pinned (by name)
 let currentTab: Ref<string>
-if (pinnedActivities.value.size > 0) {
+if (pinnedActivitiesStore.size > 0) {
   currentTab = ref("Pinned")
 } else {
   currentTab = ref("All Activities")
@@ -105,23 +78,11 @@ for (const entry of data) {
 
 // --------------------------------------------
 // sorting
-
 // todo - whenever we can filter by clears / special clears. for that the information needs to be calculated earlier than it currently is
 // <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
 
-const activitySortingOptions = {
-  "Activity Info": [
-    "Activity Mode",
-    "Activity Name"
-  ]
-}
-const activitySortingType: Ref<"Activity Name" | "Activity Mode"> = ref("Activity Mode")
-const activitySortingMode: Ref<"Asc." | "Desc."> = ref("Asc.")
-
 function resetSorting() {
-  activitySortingType.value = "Activity Name"
-  activitySortingMode.value = "Asc."
-
+  sortingStore.resetSorting()
   resetActivitiesOnFilterChange()
 }
 
@@ -131,7 +92,7 @@ let loadingData: ActivityType[] = []
 function sortedActivities(data: ActivityType[]) {
   let sortedData: ActivityType[] = []
 
-  switch (activitySortingType.value) {
+  switch (sortingStore.activitySortingType) {
     case "Activity Mode": {
       // sort them by mode and then by name
       const partlySorted = data.sort((a: ActivityType, b: ActivityType) => {
@@ -181,29 +142,18 @@ function sortedActivities(data: ActivityType[]) {
     }
   }
 
-  if (activitySortingMode.value == "Asc.") {
+  if (sortingStore.activitySortingMode == "Asc.") {
     return sortedData
   } else {
     return sortedData.reverse()
   }
 }
-//todo reset button doesnt work for everything
+
 // --------------------------------------------
 // filters
 
-const activityNameFilter: Ref<string> = ref("")
-const activityModeFilter: Ref<string[]> = ref([])
-const activityTagsFilter: Ref<string[]> = ref([])
-const achievementTagsFilter: Ref<string[]> = ref([])
-const activityMaxPlayerCountFilter: Ref<number> = ref(destinyManifest.value.maxPlayers)
-
 function resetFilters() {
-  activityNameFilter.value = ""
-  activityModeFilter.value = []
-  activityTagsFilter.value = []
-  achievementTagsFilter.value = []
-  activityMaxPlayerCountFilter.value = destinyManifest.value.maxPlayers
-
+  filterStore.resetFilters()
   resetActivitiesOnFilterChange()
 }
 
@@ -211,37 +161,37 @@ function resetFilters() {
 function resetActivitiesOnFilterChange() {
   let filteredData: ActivityType[] = []
   let found = false
-  for (const entry of destinyManifest.value.activities) {
+  for (const entry of destinyManifest.manifest.activities) {
     const data: ManifestActivity | any = entry[1]
     const activityData = getDataByActivities(data.hash)
 
     // show all, or show pinned activities?
     if (currentTab.value == "Pinned") {
-      if (!pinnedActivities.value.has(data.name)) {
+      if (!pinnedActivitiesStore.has(data.name)) {
         continue
       }
     }
 
     // make sure the filters are respected
     // activity name
-    if (activityNameFilter.value) {
-      if (!data.name.toLowerCase().includes(activityNameFilter.value.toLowerCase())) {
+    if (filterStore.activityNameFilter) {
+      if (!data.name.toLowerCase().includes(filterStore.activityNameFilter.toLowerCase())) {
         continue
       }
     }
 
     // activity mode
-    if (activityModeFilter.value.length > 0) {
-      if (!activityModeFilter.value.includes(data.activityMode)) {
+    if (filterStore.activityModeFilter.length > 0) {
+      if (!filterStore.activityModeFilter.includes(data.activityMode)) {
         continue
       }
     }
 
     // achievement tags
-    if (achievementTagsFilter.value.length > 0) {
+    if (filterStore.achievementTagsFilter.length > 0) {
       if (activityData) {
         const founds = []
-        for (const tag of achievementTagsFilter.value) {
+        for (const tag of filterStore.achievementTagsFilter) {
           found = false
           for (const activity of activityData) {
             if (activity.specialTags.includes(tag)) {
@@ -260,9 +210,9 @@ function resetActivitiesOnFilterChange() {
     }
 
     // activity tags
-    if (activityTagsFilter.value.length > 0) {
+    if (filterStore.activityTagsFilter.length > 0) {
       const founds = []
-      for (const tag of activityTagsFilter.value) {
+      for (const tag of filterStore.activityTagsFilter) {
         founds.push(data.tags.includes(tag))
       }
       if (!founds.every(v => v === true)) {
@@ -271,7 +221,7 @@ function resetActivitiesOnFilterChange() {
     }
 
     // activity max players
-    if (data.maxPlayers > activityMaxPlayerCountFilter.value) {
+    if (data.maxPlayers > filterStore.activityMaxPlayerCountFilter) {
       continue
     }
 
@@ -355,9 +305,9 @@ function getDataByActivities(hashes: string[]) {
 }
 </script>
 
-<template>  
+<template>
   <div class="w-full flex flex-col justify-center gap-4">
-    <UserSummary :user="store.currentAccount" />
+    <UserSummary :user="playerStore.currentAccount"/>
 
     <div class="flex w-full justify-between gap-4 h-full px-2 sm:px-4">
       <Sidebar name="Filter Activities">
@@ -373,32 +323,32 @@ function getDataByActivities(hashes: string[]) {
           <!-- Filter by: Name -->
           <TextFilter
               name="Activity Name"
+              :content="filterStore.activityNameFilter"
               @filterChange="(n: string) => {
-              activityNameFilter = n
-              resetActivitiesOnFilterChange()
-            }"
+                filterStore.activityNameFilter = n
+                resetActivitiesOnFilterChange()
+              }"
           />
 
           <!-- Filter by: player amount -->
           <BetweenValue
               name="Maximum Players"
               :min="1"
-              :max="destinyManifest.maxPlayers"
-              :def="activityMaxPlayerCountFilter"
+              :max="destinyManifest.manifest.maxPlayers"
+              :content="filterStore.activityMaxPlayerCountFilter"
               @filterChange="(n: number) => {
-              activityMaxPlayerCountFilter = n
-              resetActivitiesOnFilterChange()
-            }"
+                filterStore.activityMaxPlayerCountFilter = n
+                resetActivitiesOnFilterChange()
+              }"
           />
-
         </SidebarSection>
 
         <SidebarSection name="<OR> Filters">
           <!-- Filter by: Mode -->
           <MultipleItems
               placeholder="Activity Mode"
-              :options="destinyManifest.modes"
-              :values="activityModeFilter"
+              :options="destinyManifest.manifest.modes"
+              :content="filterStore.activityModeFilter"
               @filterChange="resetActivitiesOnFilterChange()"
           />
         </SidebarSection>
@@ -408,15 +358,15 @@ function getDataByActivities(hashes: string[]) {
           <MultipleItems
               placeholder="Achievement Tags"
               :options="specialTags"
-              :values="achievementTagsFilter"
+              :content="filterStore.achievementTagsFilter"
               @filterChange="resetActivitiesOnFilterChange()"
           />
 
           <!-- Filter by: Tags -->
           <MultipleItems
               placeholder="Activity Tags"
-              :options="destinyManifest.tags"
-              :values="activityTagsFilter"
+              :options="destinyManifest.manifest.tags"
+              :content="filterStore.activityTagsFilter"
               @filterChange="resetActivitiesOnFilterChange()"
           />
         </SidebarSection>
@@ -481,7 +431,6 @@ function getDataByActivities(hashes: string[]) {
               :manifest-activity="entry[1]"
               @filterChange="(n: any) => {
                 if (currentTab == 'Pinned') {
-                  pinnedActivities = n
                   resetActivitiesOnFilterChange()
                 }
               }"
@@ -510,27 +459,27 @@ function getDataByActivities(hashes: string[]) {
           <!-- Filter by: Tags -->
           <SingleItem
               placeholder="Sorting Type"
-              :def="activitySortingType"
-              :options="activitySortingOptions"
+              :content="sortingStore.activitySortingType"
+              :options="sortingStore.activitySortingOptions"
               @filterChange="(n: any) => {
-              activitySortingType = n
-              resetActivitiesOnFilterChange()
-            }"
+                sortingStore.activitySortingType = n
+                resetActivitiesOnFilterChange()
+              }"
           />
         </SidebarSection>
 
         <SidebarSection name="Direction" :right-side="true">
           <!-- Sort direction -->
           <RadioGroupRoot
-              v-model="activitySortingMode"
-              :default-value="activitySortingMode"
+              v-model="sortingStore.activitySortingMode"
+              :default-value="sortingStore.activitySortingMode"
               orientation="vertical"
               @update:modelValue="resetActivitiesOnFilterChange()"
-              class="grid grid-cols-2 gap-2 h-8"
+              class="grid grid-cols-2 gap-1 h-8"
           >
             <TopicBar
                 class="!h-8"
-                name="Asc"
+                name="Asc."
             >
               <template v-slot:icon>
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -542,7 +491,7 @@ function getDataByActivities(hashes: string[]) {
             </TopicBar>
             <TopicBar
                 class="!h-8"
-                name="Desc"
+                name="Desc."
             >
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path

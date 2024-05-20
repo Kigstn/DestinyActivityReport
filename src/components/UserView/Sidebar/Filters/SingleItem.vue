@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {ref, watch, watchEffect} from 'vue'
 
 import {Icon} from '@iconify/vue'
 import {
@@ -14,27 +14,28 @@ import {
 
 const props = defineProps<{
   placeholder: string,
-  def: string,
+  content: string,
   options: string[] | { [id: string]: string[] },
 }>()
 const emit = defineEmits(["filterChange"])
 
-const value = ref(props.def)
+const content = ref(props.content)
+watchEffect(() => {content.value = props.content})
 
 watch(
-    value,
+    content,
     () => {
-      emit("filterChange", value.value)
+      emit("filterChange", content.value)
     },
 )
+
+// todo not resetable
 </script>
 
 <template>
-  <SelectRoot
-      v-model="value"
-  >
+  <SelectRoot v-model="content">
     <SelectTrigger
-        class="text-sm clickable h-14 flex flex-col justify-between"
+        class="text-sm clickable h-14 flex flex-col justify-between focus-visible:outline-none"
         aria-label="Customise options"
     >
       <div class="text-xs text-text_normal p-1  text-left">

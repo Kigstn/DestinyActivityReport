@@ -19,14 +19,14 @@ import {useMouseInElement} from "@vueuse/core";
 const props = defineProps<{
   placeholder: string,
   options: string[] | { [id: string]: string[] },
-  values: string[]
+  content: string[]
 }>()
 const emit = defineEmits(["filterChange"])
 
 const searchTerm = ref("")
 
 watch(
-    props.values,
+    props.content,
     () => {
       searchTerm.value = ""
       console.log("Emitted Filter Change")
@@ -53,7 +53,7 @@ onMounted(() => {
 <template>
   <ComboboxRoot
       class="relative"
-      v-model="props.values"
+      v-model="props.content"
       v-model:search-term="searchTerm"
       v-model:open="open"
       multiple
@@ -68,7 +68,7 @@ onMounted(() => {
     >
       <TagsInputRoot
           v-slot="{ modelValue: tags }"
-          :model-value="props.values"
+          :model-value="props.content"
           delimiter=""
           class="flex gap-2 items-center flex-wrap text-sm"
       >
@@ -87,7 +87,7 @@ onMounted(() => {
           <TagsInputInput
               placeholder="Type here..."
               class="flex-1 w-full !bg-transparent outline-none text-text_bright data-[state=closed]:border-none"
-              :class="(values.length == 0) ? 'placeholder-text_dull' : 'placeholder-transparent'"
+              :class="(content.length == 0) ? 'placeholder-text_dull' : 'placeholder-transparent'"
               @keydown.enter.prevent
           />
         </ComboboxInput>

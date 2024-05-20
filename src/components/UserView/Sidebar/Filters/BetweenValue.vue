@@ -7,21 +7,22 @@ import {
   NumberFieldRoot
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
-import {ref, watch} from "vue";
+import {ref, watch, watchEffect} from "vue";
 import {useDebouncedRef} from "@/funcs/utils";
 
 const props = defineProps<{
   name: string,
   min: number,
   max: number,
-  def: number
+  content: number
 }>()
 const emit = defineEmits(["filterChange"])
 
-const value = useDebouncedRef(props.def, filterChange)
+const content = useDebouncedRef(props.content, filterChange)
+watchEffect(() => {content.value = props.content})
 
 function filterChange () {
-  emit("filterChange", value.value)
+  emit("filterChange", content.value)
 }
 </script>
 
@@ -30,8 +31,7 @@ function filterChange () {
       class="text-sm clickable h-14 flex flex-col justify-between"
       :min="min"
       :max="max"
-      :default-value="def"
-      v-model="value"
+      v-model="content"
   >
     <NumberFieldLabel class="text-xs text-text_normal p-1">
       {{ name }}

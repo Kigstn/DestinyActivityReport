@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <RadioGroupItem
       :id="name"
-      class="flex h-12 bg-accent mb-4 p-2 gap-2 justify-center items-center clickable"
+      class="flex h-12 bg-accent mb-4 p-1 gap-2 justify-center items-center clickable"
       :value="name"
   >
     <slot/>
