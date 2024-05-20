@@ -7,32 +7,26 @@ import FavoriteProfile from "@/components/FavoriteProfile.vue";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import type {PlayerProfile} from "@/funcs/bungie";
 import {store} from "@/funcs/store";
+import UserSearch from "@/components/UserSearch.vue";
 
 const route = useRoute()
-
-const userSearch = ref("")
 
 const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
 
 function addToFavorites() {
   favoriteAccounts.value[store.currentAccount.membershipId] = store.currentAccount
 }
-
-function searchUser() {
-  if (!userSearch.value) {
-    return
-  }
-
-  alert(userSearch.value)
-}
 </script>
 
 <template>
   <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site">
     <header class="w-screen bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-40">
-      <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-6">
+      <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-4 text-ellipsis">
         <!-- Home Button-->
-        <RouterLink to="/" class="flex gap-4 items-center text-accent font-bold text-xl">
+        <RouterLink
+            to="/"
+            class="flex gap-4 items-center text-accent font-bold text-xl"
+        >
           <!-- todo logo -->
           <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -40,43 +34,32 @@ function searchUser() {
                 fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
           </svg>
 
-          Destiny2 Activity Report
+          <p class="hidden md:flex">
+            Destiny2 Activity Report
+          </p>
+          <p class="flex md:hidden">
+            Activity Report
+          </p>
         </RouterLink>
 
         <!-- Search Bar-->
-        <div
-            class="flex items-center text-text_bright p-1 px-4 gap-2 grow max-w-[50%]"
-        >
-          <div class="grow relative p-1 px-2 bg-accent hover:bg-accent/80 text-xl rounded-lg ">
-            <input
-                type="text"
-                v-model="userSearch"
-                @keyup.enter="searchUser()"
-                class="hover:text-text_bright peer w-full h-full bg-transparent font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 transition-all px-3 py-2.5 "
-                placeholder=" "/>
-            <label
-                class="flex text-text_normal peer-focus:text-text_normal peer-placeholder-shown:text-text_bright w-full h-full select-none pointer-events-none absolute left-0 font-normal !overflow-visible truncate leading-tight peer-focus:leading-tight transition-all -top-0.5 peer-placeholder-shown:text-base text-[11px] peer-focus:text-[11px] before:content[' '] before:block before:w-2.5 before:h-0.5 before:mt-[6.5px] before:mr-1 before:rounded-tl-md  before:pointer-events-none before:transition-all after:content[' '] after:block after:flex-grow after:w-2.5 after:h-2 after:mt-[6.5px] after:ml-1 after:rounded-tr-md after:pointer-events-none after:transition-all  peer-placeholder-shown:leading-[3.75]"
-            >
-              Search Player...
-            </label>
-          </div>
-
-          <button
-              type="submit"
-              @click="searchUser()"
-              class="text-accent hover:text-text-accent/80"
-          >
-            <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                  d="M4.5 1C4.22386 1 4 1.22386 4 1.5C4 1.77614 4.22386 2 4.5 2H12V13H4.5C4.22386 13 4 13.2239 4 13.5C4 13.7761 4.22386 14 4.5 14H12C12.5523 14 13 13.5523 13 13V2C13 1.44772 12.5523 1 12 1H4.5ZM6.60355 4.89645C6.40829 4.70118 6.09171 4.70118 5.89645 4.89645C5.70118 5.09171 5.70118 5.40829 5.89645 5.60355L7.29289 7H0.5C0.223858 7 0 7.22386 0 7.5C0 7.77614 0.223858 8 0.5 8H7.29289L5.89645 9.39645C5.70118 9.59171 5.70118 9.90829 5.89645 10.1036C6.09171 10.2988 6.40829 10.2988 6.60355 10.1036L8.85355 7.85355C9.04882 7.65829 9.04882 7.34171 8.85355 7.14645L6.60355 4.89645Z"
-                  fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-            </svg>
-          </button>
-        </div>
+        <UserSearch/>
 
         <!-- Favorite Accounts-->
-        <div class="flex gap-2">
-          <Tooltip v-if="Object.keys(favoriteAccounts).length < 3 && route.meta.canPinUser && store.currentAccount && !(store.currentAccount.membershipId in favoriteAccounts)">
+        <div class="flex flex-row-reverse gap-2 w-[184px] shrink-0">
+          <FavoriteProfile
+              v-for="entry in favoriteAccounts"
+              :membershipId="entry.membershipId"
+              :membershipType="entry.membershipType"
+              :name="entry.name"
+              :code="entry.code"
+              :icon-url="entry.iconUrl"
+
+              @unpin="delete favoriteAccounts[entry.membershipId]"
+          />
+
+          <Tooltip
+              v-if="Object.keys(favoriteAccounts).length < 3 && route.meta.canPinUser && store.currentAccount && !(store.currentAccount.membershipId in favoriteAccounts)">
             <template v-slot:hoverable>
               <div class="h-14 w-14 flex justify-center">
                 <div class="flex-col flex justify-center">
@@ -101,17 +84,6 @@ function searchUser() {
               </p>
             </template>
           </Tooltip>
-
-          <FavoriteProfile
-              v-for="entry in favoriteAccounts"
-              :membershipId="entry.membershipId"
-              :membershipType="entry.membershipType"
-              :name="entry.name"
-              :code="entry.code"
-              :icon-url="entry.iconUrl"
-
-              @unpin="delete favoriteAccounts[entry.membershipId]"
-          />
         </div>
       </div>
     </header>

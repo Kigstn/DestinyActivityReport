@@ -8,7 +8,23 @@ import {
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
+import {searchByGlobalNamePost, type UserSearchResponseDetail} from "bungie-api-ts/user";
 
+
+export function getPlatformIcon(membershipTypeStr: string) {
+    const iconByPlatform: {[id: string]: string} = {
+        "pc": "https://www.bungie.net/img/theme/bungienet/icons/steamLogo.png",
+        "xb": "https://www.bungie.net/img/theme/bungienet/icons/xboxLiveLogo.png",
+        "ps": "https://www.bungie.net/img/theme/bungienet/icons/psnLogo.png",
+        "epic": "https://www.bungie.net/img/theme/destiny/icons/icon_egs.png",
+        "stadia": "https://www.bungie.net/img/theme/bungienet/icons/stadiaLogo.png",
+    }
+    let platformIcon: string = "https://www.bungie.net/img/misc/missing_icon_d2.png"
+    if (membershipTypeStr in iconByPlatform) {
+        platformIcon = iconByPlatform[membershipTypeStr]
+    }
+    return platformIcon
+}
 
 // convert to correct membership type
 const membershipTypes: { [id: string]: number } = {
@@ -16,7 +32,7 @@ const membershipTypes: { [id: string]: number } = {
     "ps": 2,
     "pc": 3,
     "stadia": 5,
-    "egs": 6,
+    "epic": 6,
 }
 const _swap = obj => Object.fromEntries(Object.entries(obj).map(a => a.reverse()))
 const membershipTypesByInt = _swap(membershipTypes)
@@ -419,12 +435,16 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
     let light = 0
     let totalMinutesPlayed = 0
     for (const [key, data] of Object.entries(profileData.Response.characters.data)) {
+        const lp = new Date(data.dateLastPlayed)
         if (lastPlayed == undefined) {
-            lastPlayed = new Date(data.dateLastPlayed)
-            iconUrl= "https://www.bungie.net" + data.emblemPath
-            emblemUrl= "https://www.bungie.net" + data.emblemBackgroundPath
+            lastPlayed = lp
+            iconUrl = "https://www.bungie.net" + data.emblemPath
+            emblemUrl = "https://www.bungie.net" + data.emblemBackgroundPath
         }
-        if (data.light) {
+        if (lp > lastPlayed) {
+            lastPlayed = lp
+        }
+        if (data.light > light) {
             light = data.light
         }
         totalMinutesPlayed += parseInt(data.minutesPlayedTotal)
@@ -442,8 +462,50 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
         light: light,
         totalMinutesPlayed: totalMinutesPlayed
     }
+}
 
+export interface BungieUserSearchResult extends UserSearchResponseDetail {
+    mainMembershipType: number
+    mainMembershipId: string
+}
 
+export async function searchBungieUser(query: string, page: number = 0) {
+    const data = await searchByGlobalNamePost(bungieClient, {
+        page: 0
+    }, {
+        displayNamePrefix: query
+    })
+
+    if (data.Response.hasMore) {
+        if (page < 1) {
+            data.Response.searchResults.push(...await searchBungieUser(query, page + 1))
+        }
+    }
+
+    const res = []
+    for (const r of data.Response.searchResults) {
+        if (r.destinyMemberships.length == 0) {
+            continue
+        }
+
+        let mainMembershipType = r.destinyMemberships[0].membershipType
+        let mainMembershipId = r.destinyMemberships[0].membershipId
+
+        for (const m of r.destinyMemberships) {
+            if (m.crossSaveOverride == m.membershipType) {
+                mainMembershipType = m.membershipType
+                mainMembershipId = m.membershipId
+                break
+            }
+        }
+
+        res.push({
+            mainMembershipType: mainMembershipType,
+            mainMembershipId: mainMembershipId,
+            ...r
+        })
+    }
+    return res
 }
 
 

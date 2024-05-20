@@ -13,11 +13,9 @@ defineProps<{
       :value="name"
   >
     <slot/>
-    <div class="flex gap-4 items-center">
-      <h1 class="">
+      <p class="truncate">
         {{ name }}
-      </h1>
-    </div>
+      </p>
     <slot name="icon"/>
   </RadioGroupItem>
 </template>

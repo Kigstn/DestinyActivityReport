@@ -27,8 +27,7 @@ export function counter(array: string[]) {
 }
 
 
-export function useDebouncedRef(value: any, callback: CallableFunction | undefined) {
-    let timeout: number | undefined
+export function useDebouncedRef(value: any, callback?: CallableFunction | undefined, timeout: number = 500) {
     return customRef((track, trigger) => {
         return {
             get() {

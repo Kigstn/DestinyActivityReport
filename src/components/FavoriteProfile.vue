@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import {RouterLink} from "vue-router";
-import {convertMembershipTypeToStr} from "@/funcs/bungie";
+import {convertMembershipTypeToStr, getPlatformIcon} from "@/funcs/bungie";
 
 const props = defineProps<{
   membershipType: string,
@@ -13,26 +13,13 @@ const props = defineProps<{
 defineEmits(["unpin"])
 
 const membershipTypeStr = convertMembershipTypeToStr(props.membershipType)
-
-const iconByPlatform = {
-  "pc": "https://www.bungie.net/img/theme/bungienet/icons/steamLogo.png",
-  "xb": "https://www.bungie.net/img/theme/bungienet/icons/xboxLiveLogo.png",
-  "ps": "https://www.bungie.net/img/theme/bungienet/icons/psnLogo.png",
-  "stadia": "https://www.bungie.net/img/theme/bungienet/icons/icon_egs.png",
-  "egs": "https://www.bungie.net/img/theme/bungienet/icons/stadiaLogo.png",
-}
-let platformIcon: string = "https://www.bungie.net/img/misc/missing_icon_d2.png"
-if (membershipTypeStr in iconByPlatform) {
-  // @ts-ignore
-  platformIcon = iconByPlatform[membershipTypeStr]
-}
-
+const platformIcon = getPlatformIcon(membershipTypeStr)
 </script>
 
 <template>
   <Tooltip>
     <template v-slot:hoverable>
-      <RouterLink :to="`/${membershipType}/${membershipId}`">
+      <a :href="`/${membershipType}/${membershipId}`">
         <div class="relative">
           <img
               :src="iconUrl"
@@ -46,7 +33,7 @@ if (membershipTypeStr in iconByPlatform) {
           />
         </div>
 
-      </RouterLink>
+      </a>
     </template>
 
     <template v-slot:content>
