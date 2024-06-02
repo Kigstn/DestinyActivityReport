@@ -55,50 +55,92 @@ async function fetchData(newRoute: any) {
 </script>
 
 <template>
-  <div class="mx-4 rounded-2xl bg-bg_box flex flex-col" :id="manifestActivity.hash">
-    <div class="relative">
-      <img
-          class="h-60 w-full rounded-t-2xl object-cover "
-          :src=manifestActivity.imageUrl
-          :alt="`${manifestActivity.name} Image`"
-      >
-      <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2">
-        <!-- Activity Name -->
-        <div class="text-text_bright font-extrabold text-5xl text-shadow shadow-bg_box pt-8">
-          {{ manifestActivity.name }}
+  <div>
+    <div class="mx-4 rounded-2xl bg-bg_box flex flex-col" :id="manifestActivity.hash">
+      <div class="relative">
+        <img
+            class="h-60 w-full rounded-t-2xl object-cover "
+            :src=manifestActivity.imageUrl
+            :alt="`${manifestActivity.name} Image`"
+        >
+        <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2">
+          <!-- Activity Name -->
+          <div class="text-text_bright font-extrabold text-5xl text-shadow shadow-bg_box pt-8">
+            {{ manifestActivity.name }}
+          </div>
+
+          <!-- Activity Mode -->
+          <div class="flex gap-1 text-lg font-medium text-shadow shadow-bg_box">
+            <img
+                class="h-7"
+                :src="manifestActivity.modeIconUrl"
+                alt="Icon"
+            >
+            <p>
+              {{ manifestActivity.activityMode }}
+            </p>
+          </div>
+
+          <!-- Activity Description -->
+          <div class="text-text_dull text-md italic text-shadow shadow-bg_box pt-8">
+            {{ manifestActivity.description }}
+          </div>
         </div>
 
-        <!-- Activity Mode -->
-        <div class="flex gap-1 text-lg font-medium text-shadow shadow-bg_box">
-          <img
-              class="h-7"
-              :src="manifestActivity.modeIconUrl"
-              alt="Icon"
-          >
-          <p>
-            {{ manifestActivity.activityMode }}
-          </p>
-        </div>
+        <!-- Small Info -->
+        <div class="absolute bottom-2 right-2">
+          <div class="flex gap-x-1">
+            <Tag class="text-sm" v-for="tag in manifestActivity.tags">
+              {{ tag }}
+            </Tag>
 
-        <!-- Activity Description -->
-        <div class="text-text_dull text-md italic text-shadow shadow-bg_box pt-8">
-          {{ manifestActivity.description }}
+            <Tag class="text-sm">
+              {{ manifestActivity.maxPlayers }} Players
+            </Tag>
+          </div>
         </div>
       </div>
 
-      <!-- Small Info -->
-      <div class="absolute bottom-2 right-2">
-        <div class="flex gap-x-1">
-          <Tag class="text-sm" v-for="tag in manifestActivity.tags">
-            {{ tag }}
-          </Tag>
-
-          <Tag class="text-sm">
-            {{ manifestActivity.maxPlayers }} Players
-          </Tag>
-        </div>
+      <!-- Tags -->
+      <div class="bg-orange-400 h-10 flex space-x-1 py-1 px-2">
+        Special Tags
       </div>
 
+      <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
+        <div class="grid grid-cols-2 py-4">
+          <div class="bg-red-500">
+            Dot Overview
+          </div>
+          <div class="bg-blue-500">
+            Scrollable List of Activity Entries
+          </div>
+        </div>
+
+
+        <div class="py-4 w-full grid grid-cols-3 place-items-center">
+          <div class="bg-green-400">
+            Full Clears + show fastest / avg / max / total there as well. for each of the 3
+          </div>
+          <div class="bg-green-100">
+            Special Clears
+          </div>
+          <div class="bg-green-900">
+            CP Clears
+          </div>
+        </div>
+
+        <div class="py-4 w-full grid grid-cols-3 place-items-center">
+          <div class="bg-violet-400">
+            Kills
+          </div>
+          <div class="bg-violet-100">
+            Deaths
+          </div>
+          <div class="bg-violet-900">
+            Assist + much more stats that we now have thankls to pgcr
+          </div>
+        </div>
+      </div>
     </div>
 
 
