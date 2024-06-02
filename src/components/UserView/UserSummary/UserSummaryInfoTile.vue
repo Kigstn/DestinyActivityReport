@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <div class="flex flex-col justify-center">
     <div class="flex flex-col h-4/5 min-h-14 justify-center items-center">
-      <Tag class="!rounded-lg w-28">
+      <Tag class="!rounded-lg w-32 overflow-x-clip">
         <Clears :amount="value" :name="name"/>
       </Tag>
     </div>

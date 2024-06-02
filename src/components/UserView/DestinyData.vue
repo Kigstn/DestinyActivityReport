@@ -161,7 +161,13 @@ function resetSorting() {
   resetActivitiesOnFilterChange()
 }
 
-const allFilteredActivities: Ref<{[p: string]: ActivityStats}> = ref(statsByActivity)
+const aggregatedClears = ref(0)
+const aggregatedSpecialClears = ref(0)
+const aggregatedTimeSpent = ref(0)
+const aggregatedKills = ref(0)
+const aggregatedDeaths = ref(0)
+const aggregatedAssists = ref(0)
+
 const initialData: Ref<ActivityType[]> = ref([])
 let loadingData: ActivityType[] = []
 
@@ -236,7 +242,7 @@ function resetFilters() {
 // whenever the filter changes, load the activities
 function resetActivitiesOnFilterChange() {
   let filteredData: ActivityType[] = []
-  let filteredActivityData: {[p: string]: ActivityStats} = {}
+  let filteredActivityData: { [p: string]: ActivityStats } = {}
   let found = false
   for (const entry of destinyManifest.manifest.activities) {
     const data: ManifestActivity | any = entry[1]
@@ -300,7 +306,27 @@ function resetActivitiesOnFilterChange() {
     filteredActivityData[data.name] = activityData
   }
 
-  allFilteredActivities.value = filteredActivityData
+  // calc the global stats
+  let clears = 0
+  let specialClears = 0
+  let timeSpent = 0
+  let kills = 0
+  let deaths = 0
+  let assists = 0
+  for (const [name, value] of Object.entries(filteredActivityData)) {
+    clears += value.clears
+    specialClears += value.specialClears
+    timeSpent += value.timeSum
+    kills += value.kills
+    deaths += value.deaths
+    assists += value.assists
+  }
+  aggregatedClears.value = clears
+  aggregatedSpecialClears.value = specialClears
+  aggregatedTimeSpent.value = timeSpent
+  aggregatedKills.value = kills
+  aggregatedDeaths.value = deaths
+  aggregatedAssists.value = assists
 
   // sort and split into parts
   filteredData = sortedActivities(filteredData)
@@ -371,7 +397,15 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
 <template>
   <div class="w-full flex flex-col justify-center gap-4">
-    <UserSummary :user="playerStore.currentAccount" :activities="allFilteredActivities"/>
+    <UserSummary
+        :user="playerStore.currentAccount"
+        :clears="aggregatedClears"
+        :specialClears="aggregatedSpecialClears"
+        :timeSpent="aggregatedTimeSpent"
+        :kills="aggregatedKills"
+        :deaths="aggregatedDeaths"
+        :assists="aggregatedAssists"
+    />
 
     <div class="flex w-full justify-between gap-4 h-full px-2 sm:px-4">
       <Sidebar name="Filter Activities">

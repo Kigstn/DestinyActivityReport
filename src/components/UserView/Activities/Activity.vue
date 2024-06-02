@@ -117,12 +117,12 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
         </div>
       </div>
 
-      <!-- todo amount as hover -->
+      <!-- todo link to PGCR list that are relevant -->
       <!-- Tags -->
       <div class="h-8 flex space-x-1 py-1 px-2">
         <button v-for="(amount, name) in activities.specialTags">
           <BoxClickable>
-            {{ name }}
+            {{ name }} ({{amount}})
           </BoxClickable>
         </button>
       </div>
