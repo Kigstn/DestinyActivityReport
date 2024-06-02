@@ -87,6 +87,7 @@ async function fetchData(newRoute: any) {
   try {
     // get player info
     sharedDataStore.currentAccount = await getPlayerInfo(membershipId, membershipType)
+    document.title = `${sharedDataStore.currentAccount.name} | Activity Report`
 
     if (sharedDataStore.currentAccount.membershipId in favoriteAccounts.value) {
       favoriteAccounts.value[sharedDataStore.currentAccount.membershipId] = sharedDataStore.currentAccount
