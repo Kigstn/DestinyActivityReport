@@ -1,6 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import UserView from "@/views/UserView.vue";
+import UserActivityView from "@/views/UserActivityView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +15,12 @@ const router = createRouter({
             path: '/:membershipType/:membershipId',
             name: "User View",
             component: UserView,
+            meta: {canPinUser: true},
+        },
+        {
+            path: '/:membershipType/:membershipId/:activityName',
+            name: "User Activity View",
+            component: UserActivityView,
             meta: {canPinUser: true},
         },
     ]

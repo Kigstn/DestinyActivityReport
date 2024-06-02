@@ -41,7 +41,7 @@ import FaqItem from "@/components/FaqItem.vue";
           :collapsible="true"
       >
         <FaqItem
-            question="Why doesn't the side differentiate between checkpoints and full clears? Raid.Report does that!">
+            question="Why doesn't this website differentiate between checkpoints and full clears? Raid.Report does that!">
           <p>
             In theory I could do that.
             However, that would require me to call a different API endpoint which only returns one activity per call.
@@ -72,6 +72,11 @@ import FaqItem from "@/components/FaqItem.vue";
         <FaqItem question="Destiny just updated - when are you updating this side to include the new stuff?">
           <p>
             Not necessary! Everything is dynamically looked up by bungie - if they don't change anything drastic, new activities should show up automatically.
+          </p>
+        </FaqItem>
+        <FaqItem question="What's your favorite activity">
+          <p>
+            Scourge of the Past!
           </p>
         </FaqItem>
       </AccordionRoot>
