@@ -1,12 +1,12 @@
 <script setup lang="ts">
 const props = defineProps<{
   name: string,
-  amount: number
+  amount: number | string | null
 }>()
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col justify-center">
     <!-- todo show class info on hover -->
     <p class="self-center font-bold text-3xl text-text_bright">
       {{ amount }}

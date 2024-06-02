@@ -141,7 +141,7 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
 
           <!-- Clears -->
           <div class="place-content-center grid grid-cols-2 space-x-2">
-            <Clears :amount="activities.clears" name="Full Clears"/>
+            <Clears :amount="activities.clears" name="Clears"/>
             <Clears :amount="activities.specialClears" name="Special Clears"/>
           </div>
         </div>

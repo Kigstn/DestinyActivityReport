@@ -161,6 +161,7 @@ function resetSorting() {
   resetActivitiesOnFilterChange()
 }
 
+const allFilteredActivities: Ref<{[p: string]: ActivityStats}> = ref(statsByActivity)
 const initialData: Ref<ActivityType[]> = ref([])
 let loadingData: ActivityType[] = []
 
@@ -235,6 +236,7 @@ function resetFilters() {
 // whenever the filter changes, load the activities
 function resetActivitiesOnFilterChange() {
   let filteredData: ActivityType[] = []
+  let filteredActivityData: {[p: string]: ActivityStats} = {}
   let found = false
   for (const entry of destinyManifest.manifest.activities) {
     const data: ManifestActivity | any = entry[1]
@@ -295,7 +297,10 @@ function resetActivitiesOnFilterChange() {
 
     // @ts-ignore
     filteredData.push(entry)
+    filteredActivityData[data.name] = activityData
   }
+
+  allFilteredActivities.value = filteredActivityData
 
   // sort and split into parts
   filteredData = sortedActivities(filteredData)
@@ -366,7 +371,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
 <template>
   <div class="w-full flex flex-col justify-center gap-4">
-    <UserSummary :user="playerStore.currentAccount"/>
+    <UserSummary :user="playerStore.currentAccount" :activities="allFilteredActivities"/>
 
     <div class="flex w-full justify-between gap-4 h-full px-2 sm:px-4">
       <Sidebar name="Filter Activities">
