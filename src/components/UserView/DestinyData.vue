@@ -72,7 +72,7 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 // --------------------------------------------
 
 // load data on page change
-watch(() => route.params, fetchData, { immediate: true })
+watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
   console.log("Router change, getting new user data")
@@ -97,10 +97,9 @@ async function fetchData(newRoute: any) {
     const data = await getActivities(membershipId, membershipType)
     statsByActivity.value = prepareData(data)
     resetActivitiesOnFilterChange()
-
   } catch (err: any) {
-    error.value = err.toString()
-    console.log(err)
+    error.value = err.message
+    console.log(err.toString())
   } finally {
     loading.value = false
   }
@@ -418,7 +417,12 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 </script>
 
 <template>
-  <div class="w-full flex flex-col justify-center gap-4">
+  <div v-if="error" class="text-xl text-text_bright text-center m-8 max-w-[1000px] flex flex-col gap-4">
+    <p class="font-bold text-2xl">Error</p>
+    <p>{{ error }}</p>
+  </div>
+
+  <div v-else class="w-full flex flex-col justify-center gap-4">
     <UserSummary
         :user="sharedDataStore.currentAccount"
         :clears="aggregatedClears"

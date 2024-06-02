@@ -20,25 +20,27 @@ defineProps<{
 </script>
 
 <template>
-  <div class="grid grid-cols-2 xl:flex xl:flex-row justify-around gap-4 mx-2">
-    <div class="flex col-span-2 xl:hidden justify-center">
-      <UserSummaryCard :user="user" :loading="userLoading"/>
-    </div>
+  <div class="flex justify-center ">
+    <div class="grid grid-cols-2 xl:flex xl:flex-row justify-between gap-4 mx-2 w-full max-w-[1600px]">
+      <div class="flex col-span-2 xl:hidden justify-center">
+        <UserSummaryCard :user="user" :loading="userLoading"/>
+      </div>
 
-    <div class="flex gap-2 justify-center col-span-2 md:col-span-1">
-      <UserSummaryInfoTile :loading="loading" name="Clears" :value="clears"/>
-      <UserSummaryInfoTile :loading="loading" name="Special Clears" :value="specialClears"/>
-      <UserSummaryInfoTile :loading="loading" name="Total Time" :value="formatTime(timeSpent)"/>
-    </div>
+      <div class="flex gap-2 justify-center col-span-2 md:col-span-1">
+        <UserSummaryInfoTile :loading="loading" name="Clears" :value="clears"/>
+        <UserSummaryInfoTile :loading="loading" name="Special Clears" :value="specialClears"/>
+        <UserSummaryInfoTile :loading="loading" name="Total Time" :value="formatTime(timeSpent)"/>
+      </div>
 
-    <div class="hidden xl:flex">
-      <UserSummaryCard :user="user" :loading="userLoading"/>
-    </div>
+      <div class="hidden xl:flex">
+        <UserSummaryCard :user="user" :loading="userLoading"/>
+      </div>
 
-    <div class="flex gap-2 justify-center col-span-2 md:col-span-1">
-      <UserSummaryInfoTile :loading="loading" name="Kills" :value="kills"/>
-      <UserSummaryInfoTile :loading="loading" name="Assists" :value="assists"/>
-      <UserSummaryInfoTile :loading="loading" name="Deaths" :value="deaths"/>
+      <div class="flex gap-2 justify-center col-span-2 md:col-span-1">
+        <UserSummaryInfoTile :loading="loading" name="Kills" :value="kills"/>
+        <UserSummaryInfoTile :loading="loading" name="Assists" :value="assists"/>
+        <UserSummaryInfoTile :loading="loading" name="Deaths" :value="deaths"/>
+      </div>
     </div>
   </div>
 </template>

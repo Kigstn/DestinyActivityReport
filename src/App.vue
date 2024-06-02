@@ -48,7 +48,7 @@ function addToFavorites() {
         <UserSearch/>
 
         <!-- Favorite Accounts-->
-        <div class="flex flex-row-reverse gap-2 w-[184px] shrink-0">
+        <div class="hidden sm:flex flex-row-reverse gap-2 w-[184px] shrink-0">
           <FavoriteProfile
               v-for="entry in favoriteAccounts"
               :membershipId="entry.membershipId"

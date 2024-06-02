@@ -449,6 +449,9 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
     let lastPlayed
     let light = 0
     let totalMinutesPlayed = 0
+    if (Object.keys(profileData.Response.characters.data).length == 0) {
+        throw Error("This user does not have any characters")
+    }
     for (const [key, data] of Object.entries(profileData.Response.characters.data)) {
         const lp = new Date(data.dateLastPlayed)
         if (lastPlayed == undefined) {

@@ -7,11 +7,12 @@ import {
   searchBungieUser
 } from "@/funcs/bungie";
 import {type Ref, ref} from "vue";
-import type {UserSearchResponseDetail} from "bungie-api-ts/user";
 import {RouterLink} from "vue-router";
 
 const userSearch = useDebouncedRef("", searchUser)
 const userSearchResults: Ref<BungieUserSearchResult[]> = ref([])
+
+const focus = ref(false)
 
 function searchUser() {
   if (!userSearch.value) {
@@ -24,7 +25,11 @@ function searchUser() {
     userSearchResults.value = data
   })
 }
-//todo add phone styling
+
+function unFocus() {
+  setTimeout(function() { focus.value = false }, 100)
+}
+
 </script>
 
 <template>
@@ -37,7 +42,10 @@ function searchUser() {
           v-model="userSearch"
           @keyup.enter="searchUser()"
           class="hover:text-text_bright peer w-full h-full bg-transparent font-normal outline outline-0 focus:outline-0 disabled:bg-blue-gray-50 transition-all px-3 py-2.5 "
-          placeholder=" "/>
+          placeholder=" "
+          @focus="focus = true"
+          @blur="unFocus()"
+      />
       <label
           class="text-ellipsis flex text-text_normal peer-focus:text-text_normal peer-placeholder-shown:text-text_bright w-full h-full select-none pointer-events-none absolute left-0 font-normal !overflow-visible truncate leading-tight peer-focus:leading-tight transition-all -top-0.5 peer-placeholder-shown:text-base text-[11px] peer-focus:text-[11px] before:content[' '] before:block before:w-2.5 before:h-0.5 before:mt-[6.5px] before:mr-1 before:rounded-tl-md  before:pointer-events-none before:transition-all after:content[' '] after:block after:flex-grow after:w-2.5 after:h-2 after:mt-[6.5px] after:ml-1 after:rounded-tr-md after:pointer-events-none after:transition-all  peer-placeholder-shown:leading-[3.75]"
       >
@@ -46,10 +54,15 @@ function searchUser() {
     </div>
 
     <div
-        v-if="userSearchResults.length > 0"
-        class="absolute w-full flex flex-col overflow-y-scroll mt-2 max-h-[600px] bg-accent text-text_normal font-bold text-lg z-10 rounded-lg p-[5px]"
+        v-if="focus && userSearch != ''"
+        class="absolute w-full min-w-72 right-0 flex flex-col overflow-y-scroll mt-2 max-h-[600px] bg-accent text-text_normal font-bold text-lg z-10 rounded-lg p-[5px]"
     >
+      <div v-if="userSearchResults.length == 0" class="font-medium italic text-sm py-2">
+        Nothing found :(
+      </div>
+
       <RouterLink
+          v-else
           v-for="user in userSearchResults"
           class="rounded-lg flex justify-between items-center p-2 select-none hover:bg-text_bright hover:text-bg_site"
           :to="`/${convertMembershipTypeToStr(user.mainMembershipType)}/${user.mainMembershipId}`"
