@@ -79,7 +79,7 @@ export const useSortingStore = defineStore('sorting', () => {
     const activitySortingMode: Ref<"Asc." | "Desc."> = ref("Asc.")
 
     function resetSorting() {
-        activitySortingType.value = "Activity Name"
+        activitySortingType.value = "Activity Mode"
         activitySortingMode.value = "Asc."
     }
 

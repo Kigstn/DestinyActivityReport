@@ -414,6 +414,8 @@ function onLoadMore() {
 function getDataByActivities(activity: ManifestActivity): ActivityStats {
   return statsByActivity.value[activity.name]
 }
+
+// todo clears / kills / ... for filters / sorting
 </script>
 
 <template>
@@ -640,7 +642,6 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
           </RadioGroupRoot>
         </SidebarSection>
 
-        <!-- todo loading bar since this can take a second-->
         <div class="flex justify-center">
           <button
               class="clickable mt-4 p-2 shrink !text-text_bright"
