@@ -11,11 +11,13 @@ import {
   SelectValue,
   SelectViewport
 } from "radix-vue";
+import LoadingDiv from "@/components/LoadingDiv.vue";
 
 const props = defineProps<{
   placeholder: string,
   content: string,
   options: string[] | { [id: string]: string[] },
+  loading: boolean,
 }>()
 const emit = defineEmits(["filterChange"])
 
@@ -33,7 +35,11 @@ watch(
 </script>
 
 <template>
-  <SelectRoot v-model="content">
+  <div v-if="loading" class="h-14 w-full">
+    <LoadingDiv />
+  </div>
+
+  <SelectRoot v-else v-model="content">
     <SelectTrigger
         class="text-sm clickable h-14 flex flex-col justify-between focus-visible:outline-none"
         aria-label="Customise options"

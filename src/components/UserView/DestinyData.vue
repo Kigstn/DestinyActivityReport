@@ -6,7 +6,7 @@ import {
   getPlayerInfo,
   type PlayerProfile, type ActivityStats, type PlayedActivities,
 } from "@/funcs/bungie";
-import {useRoute} from "vue-router";
+import {onBeforeRouteUpdate, useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
 import Activity from "@/components/UserView/Activities/Activity.vue";
 import MultipleItems from "@/components/UserView/Sidebar/Filters/MultipleItems.vue";
@@ -19,51 +19,91 @@ import BetweenValue from "@/components/UserView/Sidebar/Filters/BetweenValue.vue
 import TextFilter from "@/components/UserView/Sidebar/Filters/TextFilter.vue";
 import SingleItem from "@/components/UserView/Sidebar/Filters/SingleItem.vue";
 import {
-  playerStore,
-  userFilterStore,
+  useFilterStore,
   useDestinyManifestStore,
-  userPinnedActivitiesStore,
-  userSortingStore
+  useSharedData,
+  useSortingStore
 } from "@/funcs/store";
-import UserSummary from "@/components/UserView/Sidebar/UserSummary.vue";
-
+import UserSummary from "@/components/UserView/UserSummary/UserSummary.vue";
+import LoadingDiv from "@/components/LoadingDiv.vue";
 
 type ActivityType = [string, ManifestActivity]
 
-
 const route = useRoute()
 
-const membershipType = route.params.membershipType
-const membershipId = route.params.membershipId
+const userLoading = ref(false)
+const loading = ref(false)
+const error = ref(null)
+const statsByActivity: Ref<{ [p: string]: ActivityStats }> = ref({})
 
 // use stores
 const destinyManifest = useDestinyManifestStore()
-const filterStore = userFilterStore()
-const sortingStore = userSortingStore()
-const pinnedActivitiesStore = userPinnedActivitiesStore()
+const filterStore = useFilterStore()
+const sortingStore = useSortingStore()
+const sharedDataStore = useSharedData()
 
-
-// todo can we use hot reloading with RouterLink? Would be neat
-
-// get player info
-// @ts-ignore
+// vars we need
 const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
-playerStore.currentAccount = await getPlayerInfo(membershipId, membershipType)
 
-if (playerStore.currentAccount.membershipId in favoriteAccounts.value) {
-  favoriteAccounts.value[playerStore.currentAccount.membershipId] = playerStore.currentAccount
-}
+const aggregatedClears = ref(0)
+const aggregatedSpecialClears = ref(0)
+const aggregatedTimeSpent = ref(0)
+const aggregatedKills = ref(0)
+const aggregatedDeaths = ref(0)
+const aggregatedAssists = ref(0)
 
-// get activities of player
-const data = await getActivities(membershipId, membershipType)
-const statsByActivity = prepareData(data)
+const initialData: Ref<ActivityType[]> = ref([])
+let loadingData: ActivityType[] = []
+
+const {x, y} = useWindowScroll()
+const allActivitiesDiv = ref(null)
+const activitiesDivSize = reactive(useElementSize(allActivitiesDiv))
+const cutoffHeight = 1500
+let currentlyLoadingMore = false
 
 // tracked what is pinned (by name)
 let currentTab: Ref<string>
-if (pinnedActivitiesStore.size > 0) {
+if (sharedDataStore.pinnedActivities.size > 0) {
   currentTab = ref("Pinned")
 } else {
   currentTab = ref("All Activities")
+}
+
+// --------------------------------------------
+
+// load data on page change
+watch(() => route.params, fetchData, { immediate: true })
+
+async function fetchData(newRoute: any) {
+  console.log("Router change, getting new user data")
+
+  const membershipType = route.params.membershipType
+  const membershipId = route.params.membershipId
+
+  error.value = null
+  loading.value = true
+  userLoading.value = true
+
+  try {
+    // get player info
+    sharedDataStore.currentAccount = await getPlayerInfo(membershipId, membershipType)
+
+    if (sharedDataStore.currentAccount.membershipId in favoriteAccounts.value) {
+      favoriteAccounts.value[sharedDataStore.currentAccount.membershipId] = sharedDataStore.currentAccount
+    }
+    userLoading.value = false
+
+    // get activities of player
+    const data = await getActivities(membershipId, membershipType)
+    statsByActivity.value = prepareData(data)
+    resetActivitiesOnFilterChange()
+
+  } catch (err: any) {
+    error.value = err.toString()
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
 }
 
 // --------------------------------------------
@@ -161,16 +201,6 @@ function resetSorting() {
   resetActivitiesOnFilterChange()
 }
 
-const aggregatedClears = ref(0)
-const aggregatedSpecialClears = ref(0)
-const aggregatedTimeSpent = ref(0)
-const aggregatedKills = ref(0)
-const aggregatedDeaths = ref(0)
-const aggregatedAssists = ref(0)
-
-const initialData: Ref<ActivityType[]> = ref([])
-let loadingData: ActivityType[] = []
-
 function sortedActivities(data: ActivityType[]) {
   let sortedData: ActivityType[] = []
 
@@ -250,7 +280,7 @@ function resetActivitiesOnFilterChange() {
 
     // show all, or show pinned activities?
     if (currentTab.value == "Pinned") {
-      if (!pinnedActivitiesStore.has(data.name)) {
+      if (!sharedDataStore.pinnedActivities.has(data.name)) {
         continue
       }
     }
@@ -333,18 +363,10 @@ function resetActivitiesOnFilterChange() {
   splitActivities(filteredData)
 }
 
-resetActivitiesOnFilterChange()
-
 // --------------------------------------------
 
 // make this an infinite scroll
 // read the window position
-const {x, y} = useWindowScroll()
-const allActivitiesDiv = ref(null)
-const activitiesDivSize = reactive(useElementSize(allActivitiesDiv))
-const cutoffHeight = 1500
-let currentlyLoadingMore = false
-
 watch(
     y,
     (newY, oldY) => {
@@ -391,20 +413,22 @@ function onLoadMore() {
 }
 
 function getDataByActivities(activity: ManifestActivity): ActivityStats {
-  return statsByActivity[activity.name]
+  return statsByActivity.value[activity.name]
 }
 </script>
 
 <template>
   <div class="w-full flex flex-col justify-center gap-4">
     <UserSummary
-        :user="playerStore.currentAccount"
+        :user="sharedDataStore.currentAccount"
         :clears="aggregatedClears"
         :specialClears="aggregatedSpecialClears"
         :timeSpent="aggregatedTimeSpent"
         :kills="aggregatedKills"
         :deaths="aggregatedDeaths"
         :assists="aggregatedAssists"
+        :loading="loading"
+        :userLoading="userLoading"
     />
 
     <div class="flex w-full justify-between gap-4 h-full px-2 sm:px-4">
@@ -420,6 +444,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         <SidebarSection name="General Filters">
           <!-- Filter by: Name -->
           <TextFilter
+              :loading="loading"
               name="Activity Name"
               :content="filterStore.activityNameFilter"
               @filterChange="(n: string) => {
@@ -430,6 +455,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
           <!-- Filter by: player amount -->
           <BetweenValue
+              :loading="loading"
               name="Maximum Players"
               :min="1"
               :max="destinyManifest.manifest.maxPlayers"
@@ -444,6 +470,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         <SidebarSection name="<OR> Filters">
           <!-- Filter by: Mode -->
           <MultipleItems
+              :loading="loading"
               placeholder="Activity Mode"
               :options="destinyManifest.manifest.modes"
               :content="filterStore.activityModeFilter"
@@ -454,6 +481,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         <SidebarSection name="<AND> Filters">
           <!-- Filter by: Achievements -->
           <MultipleItems
+              :loading="loading"
               placeholder="Achievement Tags"
               :options="specialTags"
               :content="filterStore.achievementTagsFilter"
@@ -462,6 +490,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
           <!-- Filter by: Tags -->
           <MultipleItems
+              :loading="loading"
               placeholder="Activity Tags"
               :options="destinyManifest.manifest.tags"
               :content="filterStore.activityTagsFilter"
@@ -510,8 +539,14 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
           </TopicBar>
         </RadioGroupRoot>
 
+        <div v-if="loading" class="activities_grid">
+          <div class="w-[320px] h-[533.333px]" v-for="x in [...Array(8).keys()]">
+            <LoadingDiv/>
+          </div>
+        </div>
+
         <div
-            v-if="initialData.length == 0"
+            v-else-if="initialData.length == 0"
             class="italic text-text_dull text-lg p-2 text-center pt-16 flex flex-col gap-2"
         >
           <p>Imagine some cool activity stats here...</p>
@@ -520,7 +555,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         <div
             v-else
             ref="allActivitiesDiv"
-            class="grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]"
+            class="activities_grid"
         >
           <Activity
               v-for="entry in initialData"
@@ -556,6 +591,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         <SidebarSection name="Sort By" :right-side="true">
           <!-- Filter by: Tags -->
           <SingleItem
+              :loading="loading"
               placeholder="Sorting Type"
               :content="sortingStore.activitySortingType"
               :options="sortingStore.activitySortingOptions"

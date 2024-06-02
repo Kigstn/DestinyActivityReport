@@ -49,10 +49,10 @@ function searchUser() {
         v-if="userSearchResults.length > 0"
         class="absolute w-full flex flex-col overflow-y-scroll mt-2 max-h-[600px] bg-accent text-text_normal font-bold text-lg z-10 rounded-lg p-[5px]"
     >
-      <a
+      <RouterLink
           v-for="user in userSearchResults"
           class="rounded-lg flex justify-between items-center p-2 select-none hover:bg-text_bright hover:text-bg_site"
-          :href="`/${convertMembershipTypeToStr(user.mainMembershipType)}/${user.mainMembershipId}`"
+          :to="`/${convertMembershipTypeToStr(user.mainMembershipType)}/${user.mainMembershipId}`"
       >
         <p>
           {{ user.bungieGlobalDisplayName }}<span class="text-text_dull">#{{ user.bungieGlobalDisplayNameCode.toString().padStart(4, '0') }}</span>
@@ -80,7 +80,7 @@ function searchUser() {
           </div>
         </div>
 
-      </a>
+      </RouterLink>
     </div>
 
   </div>

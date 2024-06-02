@@ -15,11 +15,13 @@ import {
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
 import {useMouseInElement} from "@vueuse/core";
+import LoadingDiv from "@/components/LoadingDiv.vue";
 
 const props = defineProps<{
   placeholder: string,
   options: string[] | { [id: string]: string[] },
-  content: string[]
+  content: string[],
+  loading: boolean,
 }>()
 const emit = defineEmits(["filterChange"])
 
@@ -38,7 +40,7 @@ watch(
 // add event listener to close doc if clicked outside
 const viewport = ref(null)
 const open = ref(false)
-const { isOutside: viewportOutside } = useMouseInElement(viewport)
+const {isOutside: viewportOutside} = useMouseInElement(viewport)
 onMounted(() => {
   document.addEventListener("click", (e) => {
     if (viewportOutside.value && open.value) {
@@ -51,7 +53,12 @@ onMounted(() => {
 </script>
 
 <template>
+  <div v-if="loading" class="h-14 w-full">
+    <LoadingDiv/>
+  </div>
+
   <ComboboxRoot
+      v-else
       class="relative"
       v-model="props.content"
       v-model:search-term="searchTerm"

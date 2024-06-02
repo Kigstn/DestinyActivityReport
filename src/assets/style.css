@@ -20,4 +20,8 @@
     .tooltip {
         @apply  bg-bg_site_light text-text_bright rounded-md py-2 px-4 font-bold border-2 border-text_bright
     }
+
+    .activities_grid {
+        @apply grid justify-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px]
+    }
 }

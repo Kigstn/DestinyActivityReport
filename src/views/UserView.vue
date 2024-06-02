@@ -8,13 +8,5 @@ const route = useRoute()
 
 
 <template>
-  <Suspense>
-    <!-- main content -->
-    <DestinyData/>
-
-    <!-- loading state -->
-    <template #fallback>
-      Loading...
-    </template>
-  </Suspense>
+  <DestinyData/>
 </template>

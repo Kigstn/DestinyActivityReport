@@ -436,7 +436,7 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
     }
     let code = "0000"
     if (profileData.Response.profile.data?.userInfo.bungieGlobalDisplayNameCode) {
-        code = profileData.Response.profile.data?.userInfo.bungieGlobalDisplayNameCode.toString()
+        code = profileData.Response.profile.data?.userInfo.bungieGlobalDisplayNameCode.toString().padStart(4, '0')
     }
 
     const membershipTypes = []

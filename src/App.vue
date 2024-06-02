@@ -6,15 +6,17 @@ import {useLocalStorage} from "@vueuse/core";
 import FavoriteProfile from "@/components/FavoriteProfile.vue";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import type {PlayerProfile} from "@/funcs/bungie";
-import {playerStore} from "@/funcs/store";
+import {useSharedData} from "@/funcs/store";
 import UserSearch from "@/components/UserSearch.vue";
 
 const route = useRoute()
 
+const sharedDataStore = useSharedData()
+
 const favoriteAccounts: Ref<{ [membershipId: string]: PlayerProfile }> = useLocalStorage("favoriteAccounts", {})
 
 function addToFavorites() {
-  favoriteAccounts.value[playerStore.currentAccount.membershipId] = playerStore.currentAccount
+  favoriteAccounts.value[sharedDataStore.currentAccount.membershipId] = sharedDataStore.currentAccount
 }
 </script>
 
@@ -59,7 +61,7 @@ function addToFavorites() {
           />
 
           <Tooltip
-              v-if="Object.keys(favoriteAccounts).length < 3 && route.meta.canPinUser && playerStore.currentAccount && !(playerStore.currentAccount.membershipId in favoriteAccounts)">
+              v-if="Object.keys(favoriteAccounts).length < 3 && route.meta.canPinUser && sharedDataStore.currentAccount && !(sharedDataStore.currentAccount.membershipId in favoriteAccounts)">
             <template v-slot:hoverable>
               <div class="h-14 w-14 flex justify-center">
                 <div class="flex-col flex justify-center">

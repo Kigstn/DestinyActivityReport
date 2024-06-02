@@ -19,7 +19,7 @@ const platformIcon = getPlatformIcon(membershipTypeStr)
 <template>
   <Tooltip>
     <template v-slot:hoverable>
-      <a :href="`/${membershipType}/${membershipId}`">
+      <RouterLink :to="`/${membershipType}/${membershipId}`">
         <div class="relative">
           <img
               :src="iconUrl"
@@ -33,7 +33,7 @@ const platformIcon = getPlatformIcon(membershipTypeStr)
           />
         </div>
 
-      </a>
+      </RouterLink>
     </template>
 
     <template v-slot:content>

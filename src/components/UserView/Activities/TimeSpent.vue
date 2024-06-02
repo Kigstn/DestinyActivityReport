@@ -8,8 +8,7 @@ defineProps<{
 
 <template>
   <div class="flex flex-col">
-    <!-- todo show class info on hover -->
-    <p class="self-center font-bold text-text_bright" v-if="amount != null && amount != 0">
+    <p class="self-center font-bold text-text_bright" v-if="amount != null && amount != 0 && amount != '0s'">
       {{ amount }}
     </p>
     <div v-else class="flex justify-center w-full h-[24px]">

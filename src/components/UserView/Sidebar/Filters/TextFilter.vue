@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import {ref, watch, watchEffect} from "vue";
 import {useDebouncedRef} from "@/funcs/utils";
+import LoadingDiv from "@/components/LoadingDiv.vue";
 
 const props = defineProps<{
   name: string,
-  content: string
+  content: string,
+  loading: boolean,
 }>()
 const emit = defineEmits(["filterChange"])
 
@@ -17,7 +19,11 @@ function filterChange () {
 </script>
 
 <template>
-  <div class="clickable min-h-14 flex flex-col justify-between">
+  <div v-if="loading" class="h-14 w-full">
+    <LoadingDiv />
+  </div>
+
+  <div v-else class="clickable min-h-14 flex flex-col justify-between">
     <div class="text-xs text-text_normal p-1">
       {{ name }}
     </div>

@@ -2,7 +2,7 @@ import {customRef} from "vue";
 
 export function formatTime(x: number | null) {
     if (x == 0 || x == null) {
-        return null
+        return "0s"
     }
 
     let days: number = Math.floor(x / (3600 * 24));

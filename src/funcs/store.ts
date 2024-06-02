@@ -1,14 +1,10 @@
-import {reactive, type Ref, ref} from 'vue'
+import {type Ref, ref} from 'vue'
 import type {ManifestActivity, PlayerProfile} from "@/funcs/bungie";
 import {defineStore} from "pinia";
 import {useLocalStorage} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import {getManifestActivities} from "@/funcs/bungie";
-
-// todo pinia
-// @ts-ignore
-export const playerStore: { [id: string]: PlayerProfile } = reactive({currentAccount: null})
 
 
 export const useDestinyManifestStore = defineStore('destinyManifest', () => {
@@ -43,7 +39,7 @@ export const useDestinyManifestStore = defineStore('destinyManifest', () => {
     return {manifest, updateManifest}
 })
 
-export const userFilterStore = defineStore('filter', () => {
+export const useFilterStore = defineStore('filter', () => {
     const destinyManifest = useDestinyManifestStore()
 
     // todo share the state. maybe solved when we do hot reloading
@@ -72,7 +68,7 @@ export const userFilterStore = defineStore('filter', () => {
         activityMaxPlayerCountFilter
     }
 })
-export const userSortingStore = defineStore('sorting', () => {
+export const useSortingStore = defineStore('sorting', () => {
     const activitySortingOptions = {
         "Activity Info": [
             "Activity Mode",
@@ -95,8 +91,11 @@ export const userSortingStore = defineStore('sorting', () => {
     }
 })
 
-export const userPinnedActivitiesStore = defineStore('pinnedActivities', () => {
+export const useSharedData = defineStore('pinnedActivities', () => {
     const destinyManifest = useDestinyManifestStore()
+
+    // @ts-ignore
+    const currentAccount: Ref<PlayerProfile> = ref(null)
 
     const firstSiteVisit = useLocalStorage("firstVisit", true)
     const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
@@ -111,6 +110,5 @@ export const userPinnedActivitiesStore = defineStore('pinnedActivities', () => {
         }
         firstSiteVisit.value = false
     }
-
-    return pinnedActivities
+    return {pinnedActivities, currentAccount}
 })
