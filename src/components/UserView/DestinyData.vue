@@ -4,7 +4,7 @@ import {
   getActivities,
   type ManifestActivity,
   getPlayerInfo,
-  type PlayerProfile,
+  type PlayerProfile, type ActivityStats, type PlayedActivities,
 } from "@/funcs/bungie";
 import {useRoute} from "vue-router";
 import {useLocalStorage, useWindowScroll, useElementSize} from "@vueuse/core";
@@ -56,6 +56,7 @@ if (playerStore.currentAccount.membershipId in favoriteAccounts.value) {
 
 // get activities of player
 const data = await getActivities(membershipId, membershipType)
+const statsByActivity = prepareData(data)
 
 // tracked what is pinned (by name)
 let currentTab: Ref<string>
@@ -68,12 +69,86 @@ if (pinnedActivitiesStore.size > 0) {
 // --------------------------------------------
 
 // sort data by activities
-const dataByActivities: { [id: string]: any[] } = {}
-for (const entry of data) {
-  if (!(entry.activityDetails.referenceId in dataByActivities)) {
-    dataByActivities[entry.activityDetails.referenceId] = []
+function prepareData(data: PlayedActivities[]) {
+  const dataByActivities: { [name: string]: any[] } = {}
+  for (const entry of data) {
+    if (!(entry.activityDetails.referenceId in dataByActivities)) {
+      dataByActivities[entry.activityDetails.referenceId] = []
+    }
+    dataByActivities[entry.activityDetails.referenceId].push(entry)
   }
-  dataByActivities[entry.activityDetails.referenceId].push(entry)
+
+  const statsByActivity: { [id: string]: ActivityStats } = {}
+  for (const entry of destinyManifest.manifest.activities) {
+    const data: ManifestActivity | any = entry[1]
+
+    // get relevant activities
+    const activityData = []
+    for (const hash of data.hash) {
+      if (hash in dataByActivities) {
+        activityData.push(...dataByActivities[hash])
+      }
+    }
+
+    // calculate stats for activity
+    let activityClears = 0
+    let activitySpecial = 0
+    let activityKills = 0
+    let activityAssists = 0
+    let activityDeaths = 0
+    let activitySpecials: { [id: string]: number } = {}
+    const activityTimes: number[] = []
+    for (const x of activityData) {
+      activityKills += x.values.kills.basic.value
+      activityAssists += x.values.assists.basic.value
+      activityDeaths += x.values.deaths.basic.value
+
+      if (x.completed) {
+        activityTimes.push(x.lengthSeconds)
+      }
+      if (x.specialTags) {
+        activitySpecial += 1
+        for (const specialTag of x.specialTags) {
+          if (!(specialTag in activitySpecials)) {
+            activitySpecials[specialTag] = 0
+          }
+          activitySpecials[specialTag] += 1
+        }
+      }
+      if (x.completed) {
+        activityClears += 1
+      }
+    }
+    let activityTimeMax: number | null = null
+    let activityTimeMin: number | null = null
+    let activityTimeAvg: number | null = null
+    let activityTimeSum = 0
+    if (activityTimes.length != 0) {
+      for (let i = 0; i < activityTimes.length; i++) {
+        activityTimeSum += activityTimes[i];
+      }
+      activityTimeMax = Math.max(...activityTimes)
+      activityTimeMin = Math.min(...activityTimes)
+      activityTimeAvg = activityTimeSum / activityTimes.length
+    }
+
+    statsByActivity[data.name] = {
+      clears: activityClears,
+      specialClears: activitySpecial,
+      specialTags: activitySpecials,
+      kills: activityKills,
+      assists: activityAssists,
+      deaths: activityDeaths,
+      timeSum: activityTimeSum,
+      timeMax: activityTimeMax,
+      timeMin: activityTimeMin,
+      timeAvg: activityTimeAvg,
+
+      data: activityData,
+    }
+  }
+
+  return statsByActivity
 }
 
 // --------------------------------------------
@@ -163,7 +238,7 @@ function resetActivitiesOnFilterChange() {
   let found = false
   for (const entry of destinyManifest.manifest.activities) {
     const data: ManifestActivity | any = entry[1]
-    const activityData = getDataByActivities(data.hash)
+    const activityData = getDataByActivities(data)
 
     // show all, or show pinned activities?
     if (currentTab.value == "Pinned") {
@@ -192,14 +267,7 @@ function resetActivitiesOnFilterChange() {
       if (activityData) {
         const founds = []
         for (const tag of filterStore.achievementTagsFilter) {
-          found = false
-          for (const activity of activityData) {
-            if (activity.specialTags.includes(tag)) {
-              found = true
-              break
-            }
-          }
-          founds.push(found)
+          founds.push(tag in activityData.specialTags)
         }
         if (!founds.every(v => v === true)) {
           continue
@@ -259,6 +327,7 @@ watch(
     },
 )
 
+
 // split the entries between the ones to load instantly and the backup
 function splitActivities(data: ActivityType[]) {
   const results: ActivityType[] = []
@@ -290,18 +359,8 @@ function onLoadMore() {
   currentlyLoadingMore = false
 }
 
-function getDataByActivities(hashes: string[]) {
-  const result = []
-  for (const hash of hashes) {
-    if (hash in dataByActivities) {
-      result.push(...dataByActivities[hash])
-    }
-  }
-  if (result.length > 0) {
-    return result
-  } else {
-    return undefined
-  }
+function getDataByActivities(activity: ManifestActivity): ActivityStats {
+  return statsByActivity[activity.name]
 }
 </script>
 
@@ -427,7 +486,7 @@ function getDataByActivities(hashes: string[]) {
           <Activity
               v-for="entry in initialData"
               :key="entry[0]"
-              :activities="getDataByActivities(entry[1].hash)"
+              :activities="getDataByActivities(entry[1])"
               :manifest-activity="entry[1]"
               @filterChange="(n: any) => {
                 if (currentTab == 'Pinned') {

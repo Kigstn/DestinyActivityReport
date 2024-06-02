@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import {formatTime} from "@/funcs/utils";
 
 defineProps<{
   name: string,

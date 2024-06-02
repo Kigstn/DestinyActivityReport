@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {type ManifestActivity} from "@/funcs/bungie";
+import {type ActivityStats, type ManifestActivity} from "@/funcs/bungie";
 import type {DestinyHistoricalStatsPeriodGroup} from "bungie-api-ts/destiny2";
 import {Toggle} from "radix-vue";
 import {Icon} from "@iconify/vue";
@@ -16,60 +16,15 @@ import {useLocalStorage} from "@vueuse/core";
 
 const props = defineProps<{
   manifestActivity: ManifestActivity,
-  activities: PlayedActivities[] | undefined
+  activities: ActivityStats
 }>()
 defineEmits(["filterChange"])
 
 const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
 const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
-
-// calculate with the activities for this
-let activityClears = 0
-let activitySpecial = 0
-let activityKills = 0
-let activityAssists = 0
-let activityDeaths = 0
-let activitySpecials: { [id: string]: number } = {}
-const activityTimes: number[] = []
-if (props.activities) {
-  for (const x of props.activities) {
-    activityKills += x.values.kills.basic.value
-    activityAssists += x.values.assists.basic.value
-    activityDeaths += x.values.deaths.basic.value
-
-    if (x.completed) {
-      activityTimes.push(x.lengthSeconds)
-    }
-    if (x.specialTags) {
-      activitySpecial += 1
-      for (const specialTag of x.specialTags) {
-        if (!(specialTag in activitySpecials)) {
-          activitySpecials[specialTag] = 0
-        }
-        activitySpecials[specialTag] += 1
-      }
-    }
-    if (x.completed) {
-      activityClears += 1
-    }
-  }
-}
-let activityTimeMax: number | null = null
-let activityTimeMin: number | null = null
-let activityTimeAvg: number | null = null
-let activityTimeSum = 0
-if (activityTimes.length != 0) {
-  for (let i = 0; i < activityTimes.length; i++) {
-    activityTimeSum += activityTimes[i];
-  }
-  activityTimeMax = Math.max(...activityTimes)
-  activityTimeMin = Math.min(...activityTimes)
-  activityTimeAvg = activityTimeSum / activityTimes.length
-}
 </script>
 
 <template>
-
   <div
       class="flex flex-col shadow-inner shadow-bg_site rounded-lg bg-gradient-to-t from-bg_box to-bg_site w-80"
       :id="manifestActivity.hash.toString()"
@@ -165,7 +120,7 @@ if (activityTimes.length != 0) {
       <!-- todo amount as hover -->
       <!-- Tags -->
       <div class="h-8 flex space-x-1 py-1 px-2">
-        <button v-for="(amount, name) in activitySpecials">
+        <button v-for="(amount, name) in activities.specialTags">
           <BoxClickable>
             {{ name }}
           </BoxClickable>
@@ -176,7 +131,7 @@ if (activityTimes.length != 0) {
         <div class="pb-4 flex flex-col">
           <div class="h-24 row-span-2">
             <!-- Clear Markers -->
-            <ClearMarkers :activities="activities" v-if="activities"/>
+            <ClearMarkers :activities="activities" v-if="activities.data.length > 0"/>
             <div v-else class="justify-center font-medium italic text-sm text-text_dull flex h-full">
               <div class="flex flex-col justify-center h-full">
                 You have never run this
@@ -186,54 +141,31 @@ if (activityTimes.length != 0) {
 
           <!-- Clears -->
           <div class="place-content-center grid grid-cols-2 space-x-2">
-            <Clears :amount="activityClears" name="Full Clears"/>
-            <Clears :amount="activitySpecial" name="Special Clears"/>
+            <Clears :amount="activities.clears" name="Full Clears"/>
+            <Clears :amount="activities.specialClears" name="Special Clears"/>
           </div>
         </div>
 
-        <div v-if="activityTimes" class="py-4 grid grid-cols-3 place-content-center space-x-2">
+        <div class="py-4 grid grid-cols-3 place-items-center space-x-2">
           <!-- Fastest Clear -->
-          <TimeSpent :amount="formatTime(activityTimeMin)" name="Fastest"/>
+          <TimeSpent :amount="formatTime(activities.timeMin)" name="Fastest"/>
 
           <!-- Average Clear -->
-          <TimeSpent :amount="formatTime(activityTimeAvg)" name="Average"/>
+          <TimeSpent :amount="formatTime(activities.timeAvg)" name="Average"/>
 
           <!-- Total Time Spent -->
-          <TimeSpent :amount="formatTime(activityTimeSum)" name="Total"/>
-        </div>
-
-        <div v-else class="py-4 grid grid-cols-3 place-content-center space-x-2">
-          <!-- Fastest Clear -->
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
-                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-          </svg>
-
-          <!-- Average Clear -->
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
-                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-          </svg>
-
-          <!-- Total Time Spent -->
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-                d="M7.49985 0.877045C3.84216 0.877045 0.877014 3.84219 0.877014 7.49988C0.877014 9.1488 1.47963 10.657 2.47665 11.8162L1.64643 12.6464C1.45117 12.8417 1.45117 13.1583 1.64643 13.3535C1.8417 13.5488 2.15828 13.5488 2.35354 13.3535L3.18377 12.5233C4.34296 13.5202 5.85104 14.1227 7.49985 14.1227C11.1575 14.1227 14.1227 11.1575 14.1227 7.49988C14.1227 5.85107 13.5202 4.34299 12.5233 3.1838L13.3535 2.35354C13.5488 2.15827 13.5488 1.84169 13.3535 1.64643C13.1583 1.45117 12.8417 1.45117 12.6464 1.64643L11.8162 2.47668C10.657 1.47966 9.14877 0.877045 7.49985 0.877045ZM11.1422 3.15066C10.1567 2.32449 8.88639 1.82704 7.49985 1.82704C4.36683 1.82704 1.82701 4.36686 1.82701 7.49988C1.82701 8.88642 2.32446 10.1568 3.15063 11.1422L11.1422 3.15066ZM3.85776 11.8493C4.84317 12.6753 6.11343 13.1727 7.49985 13.1727C10.6328 13.1727 13.1727 10.6329 13.1727 7.49988C13.1727 6.11346 12.6753 4.8432 11.8493 3.85779L3.85776 11.8493Z"
-                fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
-          </svg>
+          <TimeSpent :amount="formatTime(activities.timeSum)" name="Total"/>
         </div>
 
         <div class="py-4 grid grid-cols-3 place-content-center space-x-2">
           <!-- Kills -->
-          <TimeSpent :amount="activityKills" name="Kills"/>
+          <TimeSpent :amount="activities.kills" name="Kills"/>
 
           <!-- Assists -->
-          <TimeSpent :amount="activityAssists" name="Assists"/>
+          <TimeSpent :amount="activities.assists" name="Assists"/>
 
           <!-- Deaths -->
-          <TimeSpent :amount="activityDeaths" name="Deaths"/>
+          <TimeSpent :amount="activities.deaths" name="Deaths"/>
         </div>
       </div>
     </div>

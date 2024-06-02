@@ -54,7 +54,7 @@ export default {
   data() {
     // sort the data by date
     let sortable = [];
-    for (const x of this.activities) {
+    for (const x of this.activities.data) {
       sortable.push([x.datetime, x])
     }
 

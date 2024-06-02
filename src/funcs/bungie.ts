@@ -80,6 +80,21 @@ export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
     specialTags: string[],
 }
 
+export interface ActivityStats {
+    clears: number
+    specialClears: number
+    specialTags: { [id: string]: number }
+    kills: number
+    assists: number
+    deaths: number
+    timeSum: number
+    timeMax: number | null
+    timeMin: number | null
+    timeAvg: number | null
+
+    data: PlayedActivities[]
+}
+
 export async function getActivities(destinyMembershipId: any, membershipType: any) {
     membershipType = convertMembershipType(membershipType)
 
