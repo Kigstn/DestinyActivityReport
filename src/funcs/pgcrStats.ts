@@ -1,5 +1,5 @@
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
-import {calcSpecials, type PlayedActivities} from "@/funcs/bungie";
+import {calcSpecials, type PlayedActivities, specialTags} from "@/funcs/bungie";
 
 interface PgcrWeapon {
     referenceId: string,
@@ -26,9 +26,10 @@ interface PgcrClass {
 
 interface PgcrClear {
     amount: PgcrClass,
+    totalTime: PgcrClass,
     fastestTime: PgcrClass,
+    slowestTime: PgcrClass,
     averageTime: PgcrClass,
-    maxTime: PgcrClass,
 }
 
 export interface PgcrStats {
@@ -64,6 +65,7 @@ export interface PgcrStats {
     fullClears: PgcrClear,
     specialFullClears: PgcrClear,
     cpClears: PgcrClear,
+    failedClears: PgcrClear,
 
     specialTags: { [id: string]: number },
 
@@ -175,6 +177,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
+            totalTime: {
+                total: 0,
+                byClass: {}
+            },
             fastestTime: {
                 total: 0,
                 byClass: {}
@@ -183,7 +189,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
-            maxTime: {
+            slowestTime: {
                 total: 0,
                 byClass: {}
             },
@@ -193,6 +199,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
+            totalTime: {
+                total: 0,
+                byClass: {}
+            },
             fastestTime: {
                 total: 0,
                 byClass: {}
@@ -201,7 +211,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
-            maxTime: {
+            slowestTime: {
                 total: 0,
                 byClass: {}
             },
@@ -211,6 +221,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
+            totalTime: {
+                total: 0,
+                byClass: {}
+            },
             fastestTime: {
                 total: 0,
                 byClass: {}
@@ -219,7 +233,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
-            maxTime: {
+            slowestTime: {
                 total: 0,
                 byClass: {}
             },
@@ -229,6 +243,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
+            totalTime: {
+                total: 0,
+                byClass: {}
+            },
             fastestTime: {
                 total: 0,
                 byClass: {}
@@ -237,7 +255,29 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 total: 0,
                 byClass: {}
             },
-            maxTime: {
+            slowestTime: {
+                total: 0,
+                byClass: {}
+            },
+        },
+        failedClears: {
+            amount: {
+                total: 0,
+                byClass: {}
+            },
+            totalTime: {
+                total: 0,
+                byClass: {}
+            },
+            fastestTime: {
+                total: 0,
+                byClass: {}
+            },
+            averageTime: {
+                total: 0,
+                byClass: {}
+            },
+            slowestTime: {
                 total: 0,
                 byClass: {}
             },
@@ -254,7 +294,21 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         const playerCounter = new Set()
         let playerDeaths = 0
         let completed = false
+        let completedChar = ""
         let timePlayed = 0
+
+        // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
+        let fresh = false
+        let period = new Date(pgcr.period)
+        if (period < new Date(2022, 2, 22)) {
+            if (pgcr.startingPhaseIndex === 0) {
+                fresh = true
+            }
+        } else {
+            if (pgcr.activityWasStartedFromBeginning === true) {
+                fresh = true
+            }
+        }
 
         for (const entry of pgcr.entries) {
             playerCounter.add(entry.player.destinyUserInfo.membershipId)
@@ -265,6 +319,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
 
                 if (entry.values.completed.basic.value == 1) {
                     completed = true
+                    completedChar = character
                 }
 
                 timePlayed += entry.values.timePlayedSeconds.basic.value
@@ -338,19 +393,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             }
         }
 
-        // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
-        let fresh = false
-        let period = new Date(pgcr.period)
-        if (period < new Date(2022, 2, 22)) {
-            if (pgcr.startingPhaseIndex === 0) {
-                fresh = true
-            }
-        } else {
-            if (pgcr.activityWasStartedFromBeginning === true) {
-                fresh = true
-            }
-        }
-
+        // calc special tags
         const playerCount = playerCounter.size
         let specialTags: string[] = []
         if (completed && fresh) {
@@ -371,6 +414,18 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             specialTags: specialTags,
         }
 
+        if (completed) {
+            _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "combinedClears", timePlayed)
+            if (specialTags.length > 0) {
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "specialFullClears", timePlayed)
+            } else if (fresh) {
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "fullClears", timePlayed)
+            } else {
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "cpClears", timePlayed)
+            }
+        } else {
+            _addTimeStat(stats, null, pgcr.activityDetails.instanceId, "failedClears", timePlayed)
+        }
     }
 
     _addPercentStat(stats, "kd", ["kills"], "deaths")
@@ -398,6 +453,12 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             weapon.precisionKillsPercent.byClass[character] = r
         }
     }
+
+    _calcAvgTime(stats, "combinedClears")
+    _calcAvgTime(stats, "fullClears")
+    _calcAvgTime(stats, "specialFullClears")
+    _calcAvgTime(stats, "cpClears")
+    _calcAvgTime(stats, "failedClears")
 
     return stats
 }
@@ -485,4 +546,45 @@ function _addBestPercentStat(stats: PgcrStats, character: string, instanceId: st
     if (r > stats[key].byClass[character]) {
         stats[key].byClass[character] = r
     }
+}
+
+function _addTimeStat(stats: PgcrStats, character: string | null, instanceId: string, key: string, value: number) {
+    stats[key].amount.total += 1
+    stats[key].totalTime.total += value
+
+    if (value < stats[key].fastestTime.total) {
+        stats[key].fastestTime.total = value
+        stats[key].fastestTime.instanceId = instanceId
+    }
+    if (value > stats[key].slowestTime.total) {
+        stats[key].slowestTime.total = value
+        stats[key].slowestTime.instanceId = instanceId
+    }
+
+    if (character !== null) {
+        stats[key].amount.byClass[character] += 1
+        stats[key].totalTime.byClass[character] += value
+
+        if (value < stats[key].fastestTime.byClass[character]) {
+            stats[key].fastestTime.byClass[character] = value
+        }
+        if (value > stats[key].slowestTime.byClass[character]) {
+            stats[key].slowestTime.total = value
+        }
+    }
+}
+
+function _calcAvgTime(stats: PgcrStats, key: string) {
+    let n = stats[key].amount.total
+    if (n != 0) {
+        stats[key].averageTime.total = stats[key].totalTime.total / n
+    }
+
+    for (const char of Object.keys(stats[key].amount.byClass)) {
+        n = stats[key].amount.byClass[char]
+        if (n != 0) {
+            stats[key].averageTime.byClass[char] = stats[key].totalTime.byClass[char] / n
+        }
+    }
+
 }
