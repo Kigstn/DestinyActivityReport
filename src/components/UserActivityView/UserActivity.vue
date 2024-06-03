@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {type Ref, ref, watch} from "vue";
-import {getActivities, getPlayerInfo, type ManifestActivity} from "@/funcs/bungie";
+import {getActivities, getPGCRs, getPlayerInfo, type ManifestActivity} from "@/funcs/bungie";
 import {useDestinyManifestStore, useSharedData} from "@/funcs/store";
 import Tag from "@/components/UserView/Tag.vue";
+import LoadingDiv from "@/components/LoadingDiv.vue";
+import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
+import ErrorDiv from "@/components/ErrorDiv.vue";
+import {calcStats} from "@/funcs/pgcrStats";
+import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 
-
-// use stores
-const destinyManifest = useDestinyManifestStore()
-const sharedDataStore = useSharedData()
 
 // vars we need
-const loading = ref(false)
+const manifestLoading = ref(true)
+const dataLoading = ref(true)
 const error = ref(null)
 // @ts-ignore
 const manifestActivity: Ref<ManifestActivity> = ref(null)
+const pgcrs: Ref<DestinyPostGameCarnageReportData[]> = ref([])
+const pgcrStats = ref({})
 
 // --------------------------------------------
 
@@ -30,9 +34,19 @@ async function fetchData(newRoute: any) {
   const activityName: any = route.params.activityName
 
   error.value = null
-  loading.value = true
+  manifestLoading.value = true
+  dataLoading.value = true
+  // @ts-ignore
+  manifestActivity.value = null
+  // @ts-ignore
+  pgcrStats.value = {}
+
+  // use stores
+  const destinyManifest = useDestinyManifestStore()
+  const sharedDataStore = useSharedData()
 
   try {
+    // get the correct manifest activity
     for (const entry of destinyManifest.manifest.activities) {
       if (entry[0] == activityName) {
         // @ts-ignore
@@ -40,23 +54,34 @@ async function fetchData(newRoute: any) {
         break
       }
     }
+    if (manifestActivity.value === null) {
+      throw Error("This activity does not exist! Make sure there are no typos in your URL :)")
+    }
+    manifestLoading.value = false
 
+    pgcrs.value = await getPGCRs(manifestActivity.value, membershipId, membershipType)
+    pgcrStats.value = calcStats(pgcrs.value, membershipId.toString())
 
   } catch (err: any) {
     error.value = err.message
     console.log(err.toString())
   } finally {
-    loading.value = false
+    dataLoading.value = false
   }
 }
-
-
-// todo make sure that all
 </script>
 
 <template>
   <div>
-    <div class="mx-4 rounded-2xl bg-bg_box flex flex-col" :id="manifestActivity.hash">
+    <ErrorDiv v-if="error">
+      {{ error }}
+    </ErrorDiv>
+
+    <div v-else-if="manifestLoading" class="mx-4 rounded-2xl h-60">
+      <LoadingDiv/>
+    </div>
+
+    <div v-else class="mx-4 rounded-2xl bg-bg_box flex flex-col" :id="manifestActivity.hash">
       <div class="relative">
         <img
             class="h-60 w-full rounded-t-2xl object-cover "
@@ -101,50 +126,57 @@ async function fetchData(newRoute: any) {
         </div>
       </div>
 
-      <!-- Tags -->
-      <div class="bg-orange-400 h-10 flex space-x-1 py-1 px-2">
-        Special Tags
+      <div v-if="dataLoading" class="p-4 w-full h-80">
+        <LoadingDiv class="!bg-bg_site"/>
       </div>
-
-      <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
-        <div class="grid grid-cols-2 py-4">
-          <div class="bg-red-500">
-            Dot Overview
-          </div>
-          <div class="bg-blue-500">
-            Scrollable List of Activity Entries
-          </div>
+      <div v-else>
+        <!-- Special Tags -->
+        <div class="bg-orange-400 h-10 flex space-x-1 py-1 px-2">
+          Special Tags
         </div>
 
+        <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
+          <div class="grid grid-cols-2 py-4">
+            <!-- Clear Markers -->
+            <ClearMarkers :activities="pgcrStats" v-if="pgcrStats.data.length > 0"/>
+            <div v-else class="justify-center font-medium italic text-sm text-text_dull flex h-full">
+              <div class="flex flex-col justify-center h-full">
+                You have never run this
+              </div>
+            </div>
+            <div class="bg-blue-500">
+              Scrollable List of Activity Entries
+            </div>
+          </div>
 
-        <div class="py-4 w-full grid grid-cols-3 place-items-center">
-          <div class="bg-green-400">
-            Full Clears + show fastest / avg / max / total there as well. for each of the 3
+          <div class="py-4 w-full grid grid-cols-3 place-items-center">
+            <div class="bg-green-400">
+              Full Clears + show fastest / avg / max / total there as well. for each of the 3
+            </div>
+            <div class="bg-green-100">
+              Special Clears
+            </div>
+            <div class="bg-green-900">
+              CP Clears
+            </div>
           </div>
-          <div class="bg-green-100">
-            Special Clears
-          </div>
-          <div class="bg-green-900">
-            CP Clears
-          </div>
-        </div>
 
-        <div class="py-4 w-full grid grid-cols-3 place-items-center">
-          <div class="bg-violet-400">
-            Kills
-          </div>
-          <div class="bg-violet-100">
-            Deaths
-          </div>
-          <div class="bg-violet-900">
-            Assist + much more stats that we now have thankls to pgcr
+          <div class="py-4 w-full grid grid-cols-3 place-items-center">
+            <div class="bg-violet-400">
+              Kills
+            </div>
+            <div class="bg-violet-100">
+              Deaths
+            </div>
+            <div class="bg-violet-900">
+              Assist + much more stats that we now have thankls to pgcr
+            </div>
           </div>
         </div>
       </div>
     </div>
 
 
-    <div>{{ manifestActivity }}</div>
   </div>
 
 </template>

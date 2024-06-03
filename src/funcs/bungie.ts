@@ -4,7 +4,7 @@ import {
     type DestinyManifest,
     getActivityHistory,
     getDestinyManifestSlice,
-    getHistoricalStatsForAccount, getProfile
+    getHistoricalStatsForAccount, getPostGameCarnageReport, getProfile
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
@@ -12,7 +12,7 @@ import {searchByGlobalNamePost, type UserSearchResponseDetail} from "bungie-api-
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
-    const iconByPlatform: {[id: string]: string} = {
+    const iconByPlatform: { [id: string]: string } = {
         "pc": "https://www.bungie.net/img/theme/bungienet/icons/steamLogo.png",
         "xb": "https://www.bungie.net/img/theme/bungienet/icons/xboxLiveLogo.png",
         "ps": "https://www.bungie.net/img/theme/bungienet/icons/psnLogo.png",
@@ -95,7 +95,7 @@ export interface ActivityStats {
     data: PlayedActivities[]
 }
 
-export async function getActivities(destinyMembershipId: any, membershipType: any) {
+export async function getActivities(destinyMembershipId: any, membershipType: any, mode: number = 0) {
     membershipType = convertMembershipType(membershipType)
 
     const data: DestinyHistoricalStatsPeriodGroup[] = []
@@ -103,7 +103,7 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
     // on dev - do not run everything, use my credentials
     if (import.meta.env.DEV) {
         console.log("DEV: Running with hardcoded destiny data")
-        await _getActivities("4611686018467765462", 3, "2305843009302043968", data)
+        await _getActivities("4611686018467765462", 3, "2305843009302043968", data, mode)
         return _calcExtras(data)
     }
 
@@ -116,7 +116,7 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
     })
     const funcs = []
     for (const char of charData.Response.characters) {
-        funcs.push(_getActivities(destinyMembershipId, membershipType, char.characterId, data))
+        funcs.push(_getActivities(destinyMembershipId, membershipType, char.characterId, data, mode))
     }
 
     // call the all in parallel
@@ -185,7 +185,7 @@ function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
     return finalEntries
 }
 
-async function _getActivities(destinyMembershipId: string, membershipType: number, characterId: string, data: DestinyHistoricalStatsPeriodGroup[]) {
+async function _getActivities(destinyMembershipId: string, membershipType: number, characterId: string, data: DestinyHistoricalStatsPeriodGroup[], mode: number = 0) {
     // run until there is no more entries
     let page: number = 0
     while (true) {
@@ -195,6 +195,7 @@ async function _getActivities(destinyMembershipId: string, membershipType: numbe
             characterId: characterId,
             page: page,
             count: 250,
+            mode: mode,
         })
 
         // break if empty, fe. when pages are over
@@ -226,6 +227,7 @@ export interface ManifestActivity {
     isMatchmade: boolean,
     maxPlayers: number,
     activityMode: string,
+    activityModeBungie: number,
     isPvp: boolean,
     redacted: boolean,
     blacklisted: boolean,
@@ -303,6 +305,11 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                 }
             }
 
+            let activityModeBungie = 0
+            if (value.directActivityModeType) {
+                activityModeBungie = value.directActivityModeType
+            }
+
             // tags
             const tags = []
             if (value.isPvP) {
@@ -335,6 +342,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     isMatchmade: isMatchmade,
                     maxPlayers: maxPlayers,
                     activityMode: activityMode,
+                    activityModeBungie: activityModeBungie,
                     isPvp: value.isPvP,
                     redacted: value.redacted,
                     blacklisted: value.blacklisted,
@@ -524,6 +532,31 @@ export async function searchBungieUser(query: string, page: number = 0) {
         })
     }
     return res
+}
+
+
+export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: any, membershipType: any) {
+    // get the activity overview first - we need the reference IDs of the activities and can't make sure that they are passed
+    // for example, what if the url is shared to a friend?
+    // so just get them again
+    const instanceIds = []
+    const activities = await getActivities(destinyMembershipId, membershipType, activity.activityModeBungie)
+    for (const played of activities) {
+        if (activity.hash.includes(played.activityDetails.referenceId.toString())) {
+            instanceIds.push(played.activityDetails.instanceId.toString())
+        }
+    }
+
+    // get the PGCRs with the collected info
+    const pgcrs = []
+    for (const hash of instanceIds) {
+        const pgcrData = await getPostGameCarnageReport(bungieClient, {
+            activityId: hash,
+        })
+        pgcrs.push(pgcrData.Response)
+    }
+
+    return pgcrs
 }
 
 

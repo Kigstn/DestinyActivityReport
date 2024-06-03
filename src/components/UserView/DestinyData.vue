@@ -26,6 +26,7 @@ import {
 } from "@/funcs/store";
 import UserSummary from "@/components/UserView/UserSummary/UserSummary.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
+import ErrorDiv from "@/components/ErrorDiv.vue";
 
 type ActivityType = [string, ManifestActivity]
 
@@ -420,10 +421,9 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 </script>
 
 <template>
-  <div v-if="error" class="text-xl text-text_bright text-center m-8 max-w-[1000px] flex flex-col gap-4">
-    <p class="font-bold text-2xl">Error</p>
-    <p>{{ error }}</p>
-  </div>
+  <ErrorDiv v-if="error">
+    {{ error }}
+  </ErrorDiv>
 
   <div v-else class="w-full flex flex-col justify-center gap-4">
     <UserSummary
