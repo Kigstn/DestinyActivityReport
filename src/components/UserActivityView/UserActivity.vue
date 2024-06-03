@@ -61,14 +61,18 @@ async function fetchData(newRoute: any) {
 
     pgcrs.value = await getPGCRs(manifestActivity.value, membershipId, membershipType)
     pgcrStats.value = calcStats(pgcrs.value, membershipId.toString())
+    console.log(pgcrStats.value)
+
 
   } catch (err: any) {
     error.value = err.message
-    console.log(err.toString())
+    throw err
   } finally {
     dataLoading.value = false
   }
 }
+
+// todo weapons stats
 </script>
 
 <template>

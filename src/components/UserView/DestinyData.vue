@@ -101,7 +101,7 @@ async function fetchData(newRoute: any) {
     resetActivitiesOnFilterChange()
   } catch (err: any) {
     error.value = err.message
-    console.log(err.toString())
+    throw err
   } finally {
     loading.value = false
   }
