@@ -1,5 +1,5 @@
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
-import type {PlayedActivities} from "@/funcs/bungie";
+import {calcSpecials, type PlayedActivities} from "@/funcs/bungie";
 
 interface PgcrWeapon {
     referenceId: string,
@@ -251,9 +251,23 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
     // todo call pgcrs at the same time
 
     for (const pgcr of pgcrs) {
+        const playerCounter = new Set()
+        let playerDeaths = 0
+        let completed = false
+        let timePlayed = 0
+
         for (const entry of pgcr.entries) {
+            playerCounter.add(entry.player.destinyUserInfo.membershipId)
+            playerDeaths += entry.values.deaths.basic.value
+
             if (entry.player.destinyUserInfo.membershipId == membershipId) {
                 const character = entry.player.characterClass
+
+                if (entry.values.completed.basic.value == 1) {
+                    completed = true
+                }
+
+                timePlayed += entry.values.timePlayedSeconds.basic.value
 
                 _addStat(stats, character, "kills", entry.values.kills.basic.value)
                 _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestKills", entry.values.kills.basic.value)
@@ -323,6 +337,40 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                 }
             }
         }
+
+        // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
+        let fresh = false
+        let period = new Date(pgcr.period)
+        if (period < new Date(2022, 2, 22)) {
+            if (pgcr.startingPhaseIndex === 0) {
+                fresh = true
+            }
+        } else {
+            if (pgcr.activityWasStartedFromBeginning === true) {
+                fresh = true
+            }
+        }
+
+        const playerCount = playerCounter.size
+        let specialTags: string[] = []
+        if (completed && fresh) {
+            specialTags = calcSpecials(playerCount, playerDeaths, pgcr.activityDetails.mode)
+        }
+        for (const tag of specialTags) {
+            if (!(tag in stats.specialTags)) {
+                stats.specialTags[tag] = 0
+            }
+            stats.specialTags[tag] += 1
+        }
+
+        stats.data = {
+            datetime: period,
+            completed: completed,
+            cp: !fresh,
+            lengthSeconds: timePlayed,
+            specialTags: specialTags,
+        }
+
     }
 
     _addPercentStat(stats, "kd", ["kills"], "deaths")

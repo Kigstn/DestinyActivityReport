@@ -76,6 +76,7 @@ export function convertMembershipTypeToStr(membershipType: number | string): str
 export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
     datetime: Date,
     completed: boolean,
+    cp: boolean,
     lengthSeconds: number,
     specialTags: string[],
 }
@@ -132,11 +133,54 @@ export const specialTags = {
         "Solo Flawless",
     ],
     "Raid": [
-        "Trio"
+        "Trio",
+        "Trio Flawless",
     ],
     "Raid / Dungeon": [
         "Duo",
+        "Duo Flawless",
     ],
+}
+
+export function calcSpecials(playerCount: number, deaths: number, mode: number) {
+    const specialTags = []
+
+    if (playerCount == 1 && deaths == 0) {
+        specialTags.push("Solo Flawless")
+    } else if (deaths == 0) {
+        specialTags.push("Personal Flawless")
+    } else if (playerCount == 1) {
+        specialTags.push("Solo")
+    }
+
+    // special behaviour for raids
+    if (mode == 4) {
+        if (playerCount == 2) {
+            if (deaths == 0) {
+                specialTags.push("Duo")
+            } else {
+                specialTags.push("Duo Flawless")
+            }
+        } else if (playerCount == 3) {
+            if (deaths == 0) {
+                specialTags.push("Trio")
+            } else {
+                specialTags.push("Trio Flawless")
+            }
+        }
+    }
+
+    // special behaviour for dungeons
+    if (mode == 82) {
+        if (playerCount == 2) {
+            if (deaths == 0) {
+                specialTags.push("Duo")
+            } else {
+                specialTags.push("Duo Flawless")
+            }
+        }
+    }
+    return specialTags
 }
 
 function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
@@ -147,38 +191,15 @@ function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
         entry.datetime = new Date(entry.period)
         const completed = entry.values.completed.basic.value == 1 && entry.values.completionReason.basic.value == 0
         entry.completed = completed
+        entry.cp = true
         entry.lengthSeconds = entry.values.activityDurationSeconds.basic.value
 
         // special clear?
         entry.specialTags = []
         if (completed) {
-            const playerCount = entry.values.playerCount.basic.value
-            const flawless = entry.values.deaths.basic.value
-
-            if (playerCount == 1 && flawless) {
-                entry.specialTags.push("Solo Flawless")
-            } else if (flawless) {
-                entry.specialTags.push("Personal Flawless")
-            } else if (playerCount == 1) {
-                entry.specialTags.push("Solo")
-            }
-
-            // special behaviour for raids
-            if (entry.activityDetails.mode == 4) {
-                if (playerCount == 2) {
-                    entry.specialTags.push("Duo")
-                } else if (playerCount == 3) {
-                    entry.specialTags.push("Trio")
-                }
-            }
-
-            // special behaviour for dungeons
-            if (entry.activityDetails.mode == 82) {
-                if (playerCount == 2) {
-                    entry.specialTags.push("Duo")
-                }
-            }
+            entry.specialTags = calcSpecials(entry.values.playerCount.basic.value, entry.values.deaths.basic.value, entry.activityDetails.mode)
         }
+
         finalEntries.push(entry)
     }
 
