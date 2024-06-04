@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  activities-report:
+    build:
+      context: .
+    ports:
+      - '3000:80'
