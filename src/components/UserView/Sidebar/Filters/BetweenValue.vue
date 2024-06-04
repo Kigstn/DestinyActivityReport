@@ -3,7 +3,6 @@ import {
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-  NumberFieldLabel,
   NumberFieldRoot
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
@@ -42,9 +41,9 @@ function filterChange() {
       :max="max"
       v-model="content"
   >
-    <NumberFieldLabel class="text-xs text-text_normal p-1">
+    <label class="text-xs text-text_normal p-1">
       {{ name }}
-    </NumberFieldLabel>
+    </label >
 
     <div class="flex items-center justify-between text-text_bright">
       <NumberFieldDecrement class="p-2 disabled:opacity-20">
