@@ -5,6 +5,7 @@ import {useLocalStorage} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import {getManifestActivities} from "@/funcs/bungie";
+import {resolve} from "chart.js/helpers";
 
 
 export const useDestinyManifestStore = defineStore('destinyManifest', () => {
@@ -18,25 +19,23 @@ export const useDestinyManifestStore = defineStore('destinyManifest', () => {
         maxPlayers: 0,
     })
 
-    function updateManifest() {
-        getDestinyManifest(bungieClient).then((data) => {
-            if (data.Response.version != manifest.value.version) {
-                getManifestActivities(data.Response).then(({activities, modes, tags, maxPlayers}) => {
-                    // @ts-ignore
-                    manifest.value.tags = tags
-                    manifest.value.activities = activities
-                    manifest.value.modes = modes
-                    manifest.value.maxPlayers = maxPlayers
+    async function updateManifest() {
+        const data = await getDestinyManifest(bungieClient)
+        if (data.Response.version != manifest.value.version) {
+            const {activities, modes, tags, maxPlayers} = await getManifestActivities(data.Response)
+            // @ts-ignore
+            manifest.value.tags = tags
+            manifest.value.activities = activities
+            manifest.value.modes = modes
+            manifest.value.maxPlayers = maxPlayers
 
-                    manifest.value.version = data.Response.version
-                })
-            }
-        })
+            manifest.value.version = data.Response.version
+        }
     }
 
-    updateManifest()
-
-    return {manifest, updateManifest}
+    updateManifest().then(() => {
+        return {manifest, updateManifest}
+    })
 })
 
 export const useFilterStore = defineStore('filter', () => {
