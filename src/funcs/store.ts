@@ -5,7 +5,6 @@ import {useLocalStorage} from "@vueuse/core";
 import {getDestinyManifest} from "bungie-api-ts/destiny2";
 import {bungieClient} from "@/funcs/bungieClient";
 import {getManifestActivities} from "@/funcs/bungie";
-import {resolve} from "chart.js/helpers";
 
 
 export const useDestinyManifestStore = defineStore('destinyManifest', () => {
@@ -17,25 +16,33 @@ export const useDestinyManifestStore = defineStore('destinyManifest', () => {
         modes: ["empty"],
         tags: ["empty"],
         maxPlayers: 0,
+        lastCheck: new Date(2000, 1, 1)
     })
 
     async function updateManifest() {
-        const data = await getDestinyManifest(bungieClient)
-        if (data.Response.version != manifest.value.version) {
-            const {activities, modes, tags, maxPlayers} = await getManifestActivities(data.Response)
-            // @ts-ignore
-            manifest.value.tags = tags
-            manifest.value.activities = activities
-            manifest.value.modes = modes
-            manifest.value.maxPlayers = maxPlayers
+        // only check every 10 mins
+        const now = new Date()
+        if (now > new Date(new Date(manifest.value.lastCheck).getTime() + 10 * 60000)) {
+            manifest.value.lastCheck = now
 
-            manifest.value.version = data.Response.version
+            const data = await getDestinyManifest(bungieClient)
+            if (data.Response.version != manifest.value.version) {
+                const {activities, modes, tags, maxPlayers} = await getManifestActivities(data.Response)
+                // @ts-ignore
+                manifest.value.tags = tags
+                manifest.value.activities = activities
+                manifest.value.modes = modes
+                manifest.value.maxPlayers = maxPlayers
+
+                manifest.value.version = data.Response.version
+            }
+
+        } else {
+            console.log("Skipping Manifest Update since it was last done less than 10mins ago")
         }
     }
 
-    updateManifest().then(() => {
-        return {manifest, updateManifest}
-    })
+    return {manifest, updateManifest}
 })
 
 export const useFilterStore = defineStore('filter', () => {
