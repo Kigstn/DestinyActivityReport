@@ -137,7 +137,7 @@ function prepareData(data: PlayedActivities[]) {
     let activityKills = 0
     let activityAssists = 0
     let activityDeaths = 0
-    let activitySpecials: { [id: string]: number } = {}
+    let activitySpecials: { [id: string]: {instanceId: string, amount: number} } = {}
     const activityTimes: number[] = []
     for (const x of activityData) {
       activityKills += x.values.kills.basic.value
@@ -151,9 +151,10 @@ function prepareData(data: PlayedActivities[]) {
         activitySpecial += 1
         for (const specialTag of x.specialTags) {
           if (!(specialTag in activitySpecials)) {
-            activitySpecials[specialTag] = 0
+            activitySpecials[specialTag] = {amount: 0, instanceId: x.instanceId}
           }
-          activitySpecials[specialTag] += 1
+          activitySpecials[specialTag].amount += 1
+          activitySpecials[specialTag].instanceId = x.instanceId
         }
       }
       if (x.completed) {
@@ -306,7 +307,7 @@ function resetActivitiesOnFilterChange() {
       if (activityData) {
         const founds = []
         for (const tag of filterStore.achievementTagsFilter) {
-          founds.push(tag in activityData.specialTags)
+          founds.push(activityData.specialTags[tag] != undefined)
         }
         if (!founds.every(v => v === true)) {
           continue
@@ -490,7 +491,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
           <MultipleItems
               :loading="loading"
               placeholder="Achievement Tags"
-              :options="specialTags"
+              :options="Object.keys(specialTags)"
               :content="filterStore.achievementTagsFilter"
               @filterChange="resetActivitiesOnFilterChange()"
           />

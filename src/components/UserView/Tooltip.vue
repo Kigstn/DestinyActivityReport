@@ -7,12 +7,16 @@ import {
   TooltipRoot,
   TooltipTrigger
 } from "radix-vue";
+
+defineProps<{
+  fullWidth?: boolean,
+}>()
 </script>
 
 <template>
   <TooltipProvider>
     <TooltipRoot>
-      <TooltipTrigger class="">
+      <TooltipTrigger :class="`${fullWidth && 'w-full'}`">
         <slot name="hoverable"/>
       </TooltipTrigger>
       <TooltipPortal>

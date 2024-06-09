@@ -75,6 +75,7 @@ export function convertMembershipTypeToStr(membershipType: number | string): str
 
 export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
     datetime: Date,
+    instanceId: string,
     completed: boolean,
     cp: boolean,
     lengthSeconds: number,
@@ -84,7 +85,7 @@ export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
 export interface ActivityStats {
     clears: number
     specialClears: number
-    specialTags: { [id: string]: number }
+    specialTags: { [id: string]: {instanceId: string, amount: number} }
     kills: number
     assists: number
     deaths: number
@@ -193,6 +194,7 @@ function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
         entry.completed = completed
         entry.cp = true
         entry.lengthSeconds = entry.values.activityDurationSeconds.basic.value
+        entry.instanceId = entry.activityDetails.instanceId
 
         // special clear?
         entry.specialTags = []

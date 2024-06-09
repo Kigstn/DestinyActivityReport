@@ -1,7 +1,7 @@
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
 import {calcSpecials, type PlayedActivities, specialTags} from "@/funcs/bungie";
 
-interface PgcrWeapon {
+export interface PgcrWeapon {
     referenceId: string,
     // name: string,
     // iconUrl: string,
@@ -17,14 +17,14 @@ interface PgcrWeapon {
     precisionKillsPercent: PgcrClass,
 }
 
-interface PgcrClass {
+export interface PgcrClass {
     total: number,
     byClass: { [name: string]: number },
     instanceId?: string | undefined
 }
 
 
-interface PgcrClear {
+export interface PgcrClear {
     amount: PgcrClass,
     totalTime: PgcrClass,
     fastestTime: PgcrClass,
@@ -33,6 +33,8 @@ interface PgcrClear {
 }
 
 export interface PgcrStats {
+    totalTime: PgcrClass,
+
     kills: PgcrClass,
     deaths: PgcrClass,
     assists: PgcrClass,
@@ -67,219 +69,423 @@ export interface PgcrStats {
     cpClears: PgcrClear,
     failedClears: PgcrClear,
 
-    specialTags: { [id: string]: number },
+    specialTags: { [id: string]: {instanceId: string, amount: number} },
 
     data: PlayedActivities[],
 }
 
 export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipId: string): PgcrStats {
     const stats: PgcrStats = {
+        totalTime: {
+            total: 0,
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
+        },
         kills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         deaths: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         assists: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         kd: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         kda: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         score: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         precisionKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         precisionKillsPercent: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         grenadeKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         meleeKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         superKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         abilityKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
 
         bestKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestDeaths: {
-            total: 0,
-            byClass: {}
+            total: Infinity,
+            byClass: {
+                "Warlock": Infinity,
+                "Hunter": Infinity,
+                "Titan": Infinity,
+            }
         },
         bestAssists: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestKd: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestKda: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestScore: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestPrecisionKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestPrecisionKillsPercent: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestGrenadeKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestMeleeKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestSuperKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         bestAbilityKills: {
             total: 0,
-            byClass: {}
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
         },
         weaponStats: {},
         combinedClears: {
             amount: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             totalTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             fastestTime: {
-                total: 0,
-                byClass: {}
+                total: Infinity,
+                byClass: {
+                    "Warlock": Infinity,
+                    "Hunter": Infinity,
+                    "Titan": Infinity,
+                }
             },
             averageTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             slowestTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
         },
         fullClears: {
             amount: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             totalTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             fastestTime: {
-                total: 0,
-                byClass: {}
+                total: Infinity,
+                byClass: {
+                    "Warlock": Infinity,
+                    "Hunter": Infinity,
+                    "Titan": Infinity,
+                }
             },
             averageTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             slowestTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
         },
         specialFullClears: {
             amount: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             totalTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             fastestTime: {
-                total: 0,
-                byClass: {}
+                total: Infinity,
+                byClass: {
+                    "Warlock": Infinity,
+                    "Hunter": Infinity,
+                    "Titan": Infinity,
+                }
             },
             averageTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             slowestTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
         },
         cpClears: {
             amount: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             totalTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             fastestTime: {
-                total: 0,
-                byClass: {}
+                total: Infinity,
+                byClass: {
+                    "Warlock": Infinity,
+                    "Hunter": Infinity,
+                    "Titan": Infinity,
+                }
             },
             averageTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             slowestTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
         },
         failedClears: {
             amount: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             totalTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             fastestTime: {
-                total: 0,
-                byClass: {}
+                total: Infinity,
+                byClass: {
+                    "Warlock": Infinity,
+                    "Hunter": Infinity,
+                    "Titan": Infinity,
+                }
             },
             averageTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
             slowestTime: {
                 total: 0,
-                byClass: {}
+                byClass: {
+                    "Warlock": 0,
+                    "Hunter": 0,
+                    "Titan": 0,
+                }
             },
         },
 
@@ -324,36 +530,34 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
 
                 timePlayed += entry.values.timePlayedSeconds.basic.value
 
+                _addStat(stats, character, "totalTime", entry.values.timePlayedSeconds.basic.value)
+
                 _addStat(stats, character, "kills", entry.values.kills.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestKills", entry.values.kills.basic.value)
-
                 _addStat(stats, character, "deaths", entry.values.deaths.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestDeaths", entry.values.deaths.basic.value, true)
-
                 _addStat(stats, character, "assists", entry.values.assists.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestAssists", entry.values.assists.basic.value)
-
                 _addStat(stats, character, "score", entry.score.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestScore", entry.score.basic.value)
-
                 _addStat(stats, character, "precisionKills", entry.extended.values.precisionKills.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestPrecisionKills", entry.extended.values.precisionKills.basic.value)
-
                 _addStat(stats, character, "grenadeKills", entry.extended.values.weaponKillsGrenade.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestGrenadeKills", entry.extended.values.weaponKillsGrenade.basic.value)
-
                 _addStat(stats, character, "meleeKills", entry.extended.values.weaponKillsMelee.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestMeleeKills", entry.extended.values.weaponKillsMelee.basic.value)
-
                 _addStat(stats, character, "superKills", entry.extended.values.weaponKillsSuper.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestSuperKills", entry.extended.values.weaponKillsSuper.basic.value)
-
                 _addStat(stats, character, "abilityKills", entry.extended.values.weaponKillsAbility.basic.value)
-                _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestAbilityKills", entry.extended.values.weaponKillsAbility.basic.value)
 
-                _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestKd", ["kills"], "deaths")
-                _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestKda", ["kills", "assists"], "deaths")
-                _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestPrecisionKillsPercent", ["precisionKills"], "kills")
+
+                if (completed && fresh) {
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestScore", entry.score.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestKills", entry.values.kills.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestDeaths", entry.values.deaths.basic.value, true)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestAssists", entry.values.assists.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestPrecisionKills", entry.extended.values.precisionKills.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestGrenadeKills", entry.extended.values.weaponKillsGrenade.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestMeleeKills", entry.extended.values.weaponKillsMelee.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestSuperKills", entry.extended.values.weaponKillsSuper.basic.value)
+                    _addBestStat(stats, character, pgcr.activityDetails.instanceId, "bestAbilityKills", entry.extended.values.weaponKillsAbility.basic.value)
+
+                    _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestKd", ["kills"], "deaths")
+                    _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestKda", ["kills", "assists"], "deaths")
+                    _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestPrecisionKillsPercent", ["precisionKills"], "kills")
+                }
 
                 if (entry.extended.weapons !== undefined) {
                     for (const weapon of entry.extended.weapons) {
@@ -364,15 +568,27 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                                 referenceId: rId,
                                 kills: {
                                     total: 0,
-                                    byClass: {}
+                                    byClass: {
+                                        "Warlock": 0,
+                                        "Hunter": 0,
+                                        "Titan": 0,
+                                    }
                                 },
                                 precisionKills: {
                                     total: 0,
-                                    byClass: {}
+                                    byClass: {
+                                        "Warlock": 0,
+                                        "Hunter": 0,
+                                        "Titan": 0,
+                                    }
                                 },
                                 precisionKillsPercent: {
                                     total: 0,
-                                    byClass: {}
+                                    byClass: {
+                                        "Warlock": 0,
+                                        "Hunter": 0,
+                                        "Titan": 0,
+                                    }
                                 },
                             }
                         }
@@ -401,18 +617,21 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         }
         for (const tag of specialTags) {
             if (!(tag in stats.specialTags)) {
-                stats.specialTags[tag] = 0
+                stats.specialTags[tag] = {amount: 0, instanceId: ""}
             }
-            stats.specialTags[tag] += 1
+            stats.specialTags[tag].amount += 1
+            stats.specialTags[tag].instanceId = pgcr.activityDetails.instanceId
         }
 
-        stats.data = {
+        // @ts-ignore
+        stats.data.push({
             datetime: period,
             completed: completed,
             cp: !fresh,
             lengthSeconds: timePlayed,
             specialTags: specialTags,
-        }
+            instanceId: pgcr.activityDetails.instanceId,
+        })
 
         if (completed) {
             _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "combinedClears", timePlayed)
@@ -473,7 +692,11 @@ function _addStat(stats: PgcrStats, character: string, key: string, value: numbe
 
 function _addBestStat(stats: PgcrStats, character: string, instanceId: string, key: string, value: number, lower = false) {
     if (!(character in stats[key].byClass)) {
-        stats[key].byClass[character] = 0
+        if (lower) {
+            stats[key].byClass[character] = 0
+        } else {
+            stats[key].byClass[character] = Infinity
+        }
     }
 
     if (lower) {
@@ -562,6 +785,10 @@ function _addTimeStat(stats: PgcrStats, character: string | null, instanceId: st
     }
 
     if (character !== null) {
+        if (!(character in stats[key].amount.byClass)) {
+            stats[key].amount.byClass[character] = 0
+        }
+
         stats[key].amount.byClass[character] += 1
         stats[key].totalTime.byClass[character] += value
 

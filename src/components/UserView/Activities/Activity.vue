@@ -6,7 +6,7 @@ import {Icon} from "@iconify/vue";
 import {reactive, ref} from "vue";
 import Tag from "@/components/UserView/Tag.vue";
 import Clears from "@/components/UserView/Activities/Clears.vue";
-import TimeSpent from "@/components/UserView/Activities/TimeSpent.vue";
+import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 import BoxClickable from "@/components/UserView/TagClickable.vue";
 import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import {type PlayedActivities} from "@/funcs/bungie";
@@ -90,7 +90,8 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
         <div class="absolute top-2 left-2 space-y-1">
           <!-- Activity Name -->
           <RouterLink :to="`/${route.params.membershipType}/${route.params.membershipId}/${manifestActivity.name}`">
-            <div class="hover:text-text_bright/80 text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-64">
+            <div
+                class="hover:text-text_bright/80 text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-64">
               {{ props.manifestActivity.name }}
             </div>
           </RouterLink>
@@ -122,14 +123,15 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
         </div>
       </div>
 
-      <!-- todo link to PGCR list that are relevant -->
       <!-- Tags -->
-      <div class="h-8 flex space-x-1 py-1 px-2">
-        <button v-for="(amount, name) in activities.specialTags">
-          <BoxClickable>
-            {{ name }} ({{ amount }})
-          </BoxClickable>
-        </button>
+      <div class="h-10 flex space-x-1 py-1 px-2 overflow-x-auto">
+        <div v-for="(data, name) in activities.specialTags">
+          <RouterLink :to="`/pgcr/${data.instanceId}`">
+            <BoxClickable>
+              {{ name }} ({{ data.amount }})
+            </BoxClickable>
+          </RouterLink>
+        </div>
       </div>
 
       <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
@@ -153,24 +155,24 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
 
         <div class="py-4 grid grid-cols-3 place-items-center space-x-2">
           <!-- Fastest Clear -->
-          <TimeSpent :amount="formatTime(activities.timeMin)" name="Fastest"/>
+          <ActivityStat :amount="formatTime(activities.timeMin)" name="Fastest"/>
 
           <!-- Average Clear -->
-          <TimeSpent :amount="formatTime(activities.timeAvg)" name="Average"/>
+          <ActivityStat :amount="formatTime(activities.timeAvg)" name="Average"/>
 
           <!-- Total Time Spent -->
-          <TimeSpent :amount="formatTime(activities.timeSum)" name="Total"/>
+          <ActivityStat :amount="formatTime(activities.timeSum)" name="Total"/>
         </div>
 
         <div class="py-4 grid grid-cols-3 place-content-center space-x-2">
           <!-- Kills -->
-          <TimeSpent :amount="activities.kills" name="Kills"/>
+          <ActivityStat :amount="activities.kills" name="Kills"/>
 
           <!-- Assists -->
-          <TimeSpent :amount="activities.assists" name="Assists"/>
+          <ActivityStat :amount="activities.assists" name="Assists"/>
 
           <!-- Deaths -->
-          <TimeSpent :amount="activities.deaths" name="Deaths"/>
+          <ActivityStat :amount="activities.deaths" name="Deaths"/>
         </div>
       </div>
     </div>

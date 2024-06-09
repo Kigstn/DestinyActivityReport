@@ -1,7 +1,7 @@
 import {customRef} from "vue";
 
 export function formatTime(x: number | null) {
-    if (x == 0 || x == null) {
+    if (x == 0 || x == null || x === Infinity) {
         return "0s"
     }
 
@@ -47,4 +47,12 @@ export function useDebouncedRef(value: any, callback?: CallableFunction | undefi
             },
         }
     })
+}
+
+export function formatPercent(value: number) {
+    if (value == 0) {
+        return null
+    }
+
+    return `${Math.round(value * 100) / 100}%`
 }

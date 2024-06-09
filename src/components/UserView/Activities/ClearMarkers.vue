@@ -65,6 +65,7 @@ export default {
     // calc the correct data
     const special = []
     const success = []
+    const cp = []
     const fail = []
 
     let i = 0
@@ -75,9 +76,15 @@ export default {
       vals.push(info.lengthSeconds)
 
       if (info.completed) {
-        if (info.specialTags) {
+        if (info.specialTags.length > 0) {
           info["label"] = "Special Clear"
           special.push({
+            x: i,
+            y: info.lengthSeconds
+          })
+        } else if (!info.cp) {
+          info["label"] = "Checkpoint Clear"
+          cp.push({
             x: i,
             y: info.lengthSeconds
           })
@@ -144,6 +151,12 @@ export default {
             fill: true,
             backgroundColor: "#008080",
             data: success
+          },
+          {
+            label: "Checkpoint",
+            fill: true,
+            backgroundColor: "#75AAAA",
+            data: cp
           },
           {
             label: "Failed",
