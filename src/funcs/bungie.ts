@@ -2,7 +2,7 @@ import {
     DestinyComponentType,
     type DestinyHistoricalStatsPeriodGroup,
     type DestinyManifest,
-    getActivityHistory,
+    getActivityHistory, getDestinyEntityDefinition,
     getDestinyManifestSlice,
     getHistoricalStatsForAccount, getPostGameCarnageReport, getProfile
 } from 'bungie-api-ts/destiny2';
@@ -580,6 +580,14 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
     }
 
     return pgcrs
+}
+
+export async function getManifestWeapon(hash: string) {
+    const res = await getDestinyEntityDefinition(bungieClient, {
+        entityType: "DestinyInventoryItemDefinition",
+        hashIdentifier: hash,
+    })
+    return res.Response
 }
 
 

@@ -54,5 +54,5 @@ export function formatPercent(value: number) {
         return null
     }
 
-    return `${Math.round(value * 100) / 100}%`
+    return `${Math.round(value * 100 * 100) / 100}%`
 }

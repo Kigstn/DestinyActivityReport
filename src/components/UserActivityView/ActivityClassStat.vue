@@ -4,7 +4,7 @@ import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import {formatPercent, formatTime} from "@/funcs/utils";
 
-defineProps<{
+const props = defineProps<{
   name: string,
   amount: PgcrClass,
   percent?: boolean,

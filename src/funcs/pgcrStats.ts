@@ -1,20 +1,13 @@
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
 import {calcSpecials, type PlayedActivities, specialTags} from "@/funcs/bungie";
+import {formatPercent} from "@/funcs/utils";
 
 export interface PgcrWeapon {
     referenceId: string,
-    // name: string,
-    // iconUrl: string,
-    // seasonIconWatermark: string,
-    // slot: any,
-    // itemType: any,
-    // ammoType: any,
-    // rarity: any,
-    // damageType: any,
-
     kills: PgcrClass,
     precisionKills: PgcrClass,
     precisionKillsPercent: PgcrClass,
+    precisionKillsWithPercent: PgcrClass,
 }
 
 export interface PgcrClass {
@@ -69,7 +62,7 @@ export interface PgcrStats {
     cpClears: PgcrClear,
     failedClears: PgcrClear,
 
-    specialTags: { [id: string]: {instanceId: string, amount: number} },
+    specialTags: { [id: string]: { instanceId: string, amount: number } },
 
     data: PlayedActivities[],
 }
@@ -590,6 +583,14 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                                         "Titan": 0,
                                     }
                                 },
+                                precisionKillsWithPercent: {
+                                    total: 0,
+                                    byClass: {
+                                        "Warlock": 0,
+                                        "Hunter": 0,
+                                        "Titan": 0,
+                                    }
+                                },
                             }
                         }
 
@@ -653,23 +654,33 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
 
     for (const [hash, weapon] of Object.entries(stats.weaponStats)) {
         let r = 0
+        let rd = weapon.precisionKills.total
         let v = weapon.precisionKills.total
         let d = weapon.kills.total
 
         if (d !== 0) {
             r = v / d
         }
+        if (v !== 0) {
+            rd = `${v} (${formatPercent(r)})`
+        }
         weapon.precisionKillsPercent.total = r
+        weapon.precisionKillsWithPercent.total = rd
 
         for (const character of Object.keys(weapon.kills.byClass)) {
             r = 0
+            rd = weapon.precisionKills.byClass[character]
             v = weapon.precisionKills.byClass[character]
             d = weapon.kills.byClass[character]
 
             if (d !== 0) {
                 r = v / d
             }
+            if (v !== 0) {
+                rd = `${v} (${formatPercent(r)})`
+            }
             weapon.precisionKillsPercent.byClass[character] = r
+            weapon.precisionKillsWithPercent.byClass[character] = rd
         }
     }
 

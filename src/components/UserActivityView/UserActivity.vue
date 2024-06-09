@@ -7,7 +7,7 @@ import Tag from "@/components/UserView/Tag.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
 import ErrorDiv from "@/components/ErrorDiv.vue";
-import {calcStats, type PgcrStats} from "@/funcs/pgcrStats";
+import {calcStats, type PgcrStats, type PgcrWeapon} from "@/funcs/pgcrStats";
 import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
 import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
@@ -24,6 +24,7 @@ const error = ref(null)
 // @ts-ignore
 const manifestActivity: Ref<ManifestActivity> = ref(null)
 const pgcrs: Ref<DestinyPostGameCarnageReportData[]> = ref([])
+const sortedWeapons: Ref<PgcrWeapon[]> = ref([])
 // @ts-ignore
 const pgcrStats: Ref<PgcrStats> = ref({})
 
@@ -47,6 +48,7 @@ async function fetchData(newRoute: any) {
   manifestActivity.value = null
   // @ts-ignore
   pgcrStats.value = {}
+  sortedWeapons.value = []
 
   // use stores
   const destinyManifest = useDestinyManifestStore()
@@ -68,6 +70,7 @@ async function fetchData(newRoute: any) {
 
     pgcrs.value = await getPGCRs(manifestActivity.value, membershipId, membershipType)
     pgcrStats.value = calcStats(pgcrs.value, membershipId.toString())
+    sortedWeapons.value = sortWeapons(Object.values(pgcrStats.value.weaponStats))
     console.log(pgcrStats.value)
 
 
@@ -77,6 +80,19 @@ async function fetchData(newRoute: any) {
   } finally {
     dataLoading.value = false
   }
+}
+
+function sortWeapons(weapons: PgcrWeapon[]) {
+  return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
+        if (a.kills.total < b.kills.total) {
+          return 1
+        } else if (a.kills.total == b.kills.total) {
+          return 0
+        } else {
+          return -1
+        }
+      }
+  )
 }
 </script>
 
@@ -136,16 +152,19 @@ async function fetchData(newRoute: any) {
 
         <!-- Playtime -->
         <div class="absolute bottom-2 left-2">
-          <ActivityClassStat name="Playtime" :amount="pgcrStats.totalTime" time/>
+          <div v-if="dataLoading" class="w-16 h-12">
+            <LoadingDiv class="!bg-bg_site"/>
+          </div>
+          <ActivityClassStat v-else name="Playtime" :amount="pgcrStats.totalTime" time/>
         </div>
       </div>
 
       <div v-if="dataLoading" class="p-4 w-full h-80">
-        <LoadingDiv class="!bg-bg_site"/>
+        <LoadingDiv/>
       </div>
       <div v-else>
         <!-- Special Tags -->
-        <div class="h-10 flex space-x-1 py-1 px-2">
+        <div v-if="Object.keys(pgcrStats.specialTags).length > 0" class="h-10 flex space-x-1 py-1 px-2">
           <div v-for="(data, name) in pgcrStats.specialTags">
             <RouterLink :to="`/pgcr/${data.instanceId}`">
               <BoxClickable>
@@ -168,7 +187,7 @@ async function fetchData(newRoute: any) {
                     You have never run this
                   </div>
                 </div>
-                <div class="w-[55%] max-h-40 overflow-y-scroll flex flex-col gap-1 py-1 pr-2">
+                <div class="w-[55%] max-h-40 overflow-y-scroll flex flex-col gap-1 py-1 pr-4">
                   <RouterLink v-for="data in pgcrStats.data" :to="`/pgcr/${data.instanceId}`">
                     <div class="text-center">
                       <div class="flex gap-2 items-center clickable px-2 py-1">
@@ -265,7 +284,23 @@ async function fetchData(newRoute: any) {
             </StatsContainer>
 
             <StatsContainer name="Weapons">
-              <ActivityWeapon v-for="(weapon, name) in pgcrStats.weaponStats" :data="weapon" />
+              <div class="w-full col-span-full grid grid-cols-3 place-items-center gap-4">
+                <ActivityWeapon v-for="weapon in sortedWeapons" :data="weapon"/>
+
+
+<!--                <Suspense>-->
+<!--                  <Transition mode="out-in" v-for="weapon in sortedWeapons">-->
+<!--                    <KeepAlive>-->
+<!--                      <Suspense suspensible>-->
+<!--                        <ActivityWeapon :data="weapon"/>-->
+<!--                        <template #fallback>-->
+<!--                          <LoadingDiv class="!bg-bg_site w-64 h-[140px]"/>-->
+<!--                        </template>-->
+<!--                      </Suspense>-->
+<!--                    </KeepAlive>-->
+<!--                  </Transition>-->
+<!--                </Suspense>-->
+              </div>
             </StatsContainer>
           </div>
         </div>
