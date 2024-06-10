@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   name: string,
+  classOverwrite?: string,
 }>()
 </script>
 
@@ -10,7 +11,7 @@ defineProps<{
       {{ name }}
     </p>
 
-    <div class="grid grid-cols-5 place-items-center gap-4">
+    <div :class="`grid grid-cols-2 md:grid-cols-5 place-items-center gap-4 ${classOverwrite && classOverwrite}`">
       <slot/>
     </div>
   </div>

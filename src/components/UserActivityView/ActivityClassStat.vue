@@ -10,7 +10,8 @@ const props = defineProps<{
   percent?: boolean,
   time?: boolean,
   showNull?: boolean,
-  link?: string
+  big?: boolean,
+  link?: string,
 }>()
 </script>
 
@@ -19,16 +20,19 @@ const props = defineProps<{
     <template v-slot:hoverable>
       <div v-if="link && amount.total != 0 && amount.total != Infinity" class="cursor-pointer">
         <RouterLink :to="link">
-          <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" show-null="show-null"/>
-          <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" show-null="show-null"/>
-          <ActivityStat v-else :amount="amount.total" :name="name" show-null="show-null"/>
+          <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" :show-null="showNull"
+                        :big="big"/>
+          <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" :show-null="showNull"
+                        :big="big"/>
+          <ActivityStat v-else :amount="amount.total" :name="name" :show-null="showNull" :big="big"/>
         </RouterLink>
       </div>
 
       <div v-else class="cursor-help">
-        <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" show-null="show-null"/>
-        <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" show-null="show-null"/>
-        <ActivityStat v-else :amount="amount.total" :name="name" show-null="show-null"/>
+        <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" :show-null="showNull"
+                      :big="big"/>
+        <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" :show-null="showNull" :big="big"/>
+        <ActivityStat v-else :amount="amount.total" :name="name" :show-null="showNull" :big="big"/>
       </div>
     </template>
 
@@ -39,19 +43,19 @@ const props = defineProps<{
             v-for="(value, key, index) in amount.byClass"
             :amount="formatPercent(value)"
             :name="key"
-            show-null="show-null"
+            :show-null="showNull"
         />
         <ActivityStat
             v-else-if="time" v-for="(value, key, index) in amount.byClass"
             :amount="formatTime(value)"
             :name="key"
-            show-null="show-null"
+            :show-null="showNull"
         />
         <ActivityStat
             v-else v-for="(value, key, index) in amount.byClass"
             :amount="value"
             :name="key"
-            show-null="show-null"
+            :show-null="showNull"
         />
       </div>
     </template>

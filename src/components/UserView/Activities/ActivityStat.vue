@@ -4,17 +4,18 @@ defineProps<{
   name: string,
   amount: string | number | null,
   showNull?: boolean,
+  big?: boolean,
 }>()
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div class="self-center font-bold text-text_bright" v-if="amount == 0 && showNull">
+  <div :class="`flex flex-col font-bold text-text_bright ${big ? 'text-5xl' : 'text-lg'}`">
+    <div class="self-center" v-if="amount == 0 && showNull">
       <p>
         {{ amount }}
       </p>
     </div>
-    <div class="self-center font-bold text-text_bright" v-else-if="amount != null && amount != 0 && amount != '0s'">
+    <div class="self-center" v-else-if="amount != null && amount != 0 && amount != '0s'">
       <p v-if="typeof amount == 'number'">
         {{ Math.round(amount * 100) / 100 }}
       </p>
@@ -33,7 +34,7 @@ defineProps<{
       </div>
     </div>
 
-    <p class="self-center font-medium italic text-sm text-text_dull">
+    <p :class="`self-center font-medium italic text-sm text-text_dull`">
       {{ name }}
     </p>
   </div>

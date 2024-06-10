@@ -7,7 +7,7 @@ import Tag from "@/components/UserView/Tag.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
 import ErrorDiv from "@/components/ErrorDiv.vue";
-import {calcStats, type PgcrStats, type PgcrWeapon} from "@/funcs/pgcrStats";
+import {calcStats, type PgcrStats, type PgcrTeammate, type PgcrWeapon} from "@/funcs/pgcrStats";
 import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
 import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
@@ -16,6 +16,8 @@ import BoxClickable from "@/components/UserView/TagClickable.vue";
 import {formatTime} from "../../funcs/utils";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import ActivityWeapon from "@/components/ActivityWeapon.vue";
+import ActivityMember from "@/components/UserActivityView/ActivityMember.vue";
+import UserSummaryCard from "@/components/UserView/UserSummary/UserSummaryCard.vue";
 
 // vars we need
 const manifestLoading = ref(true)
@@ -25,8 +27,11 @@ const error = ref(null)
 const manifestActivity: Ref<ManifestActivity> = ref(null)
 const pgcrs: Ref<DestinyPostGameCarnageReportData[]> = ref([])
 const sortedWeapons: Ref<PgcrWeapon[]> = ref([])
+const sortedTeammates: Ref<PgcrTeammate[]> = ref([])
 // @ts-ignore
 const pgcrStats: Ref<PgcrStats> = ref({})
+
+const sharedDataStore = useSharedData()
 
 // --------------------------------------------
 
@@ -49,12 +54,16 @@ async function fetchData(newRoute: any) {
   // @ts-ignore
   pgcrStats.value = {}
   sortedWeapons.value = []
+  sortedTeammates.value = []
 
   // use stores
   const destinyManifest = useDestinyManifestStore()
-  const sharedDataStore = useSharedData()
 
   try {
+    // get player info
+    sharedDataStore.currentAccount = await getPlayerInfo(membershipId, membershipType)
+    document.title = `${sharedDataStore.currentAccount.name} | ${activityName}`
+
     // get the correct manifest activity
     for (const entry of destinyManifest.manifest.activities) {
       if (entry[0] == activityName) {
@@ -71,6 +80,7 @@ async function fetchData(newRoute: any) {
     pgcrs.value = await getPGCRs(manifestActivity.value, membershipId, membershipType)
     pgcrStats.value = calcStats(pgcrs.value, membershipId.toString())
     sortedWeapons.value = sortWeapons(Object.values(pgcrStats.value.weaponStats))
+    sortedTeammates.value = sortTeammates(Object.values(pgcrStats.value.teammates))
     console.log(pgcrStats.value)
 
 
@@ -87,6 +97,19 @@ function sortWeapons(weapons: PgcrWeapon[]) {
         if (a.kills.total < b.kills.total) {
           return 1
         } else if (a.kills.total == b.kills.total) {
+          return 0
+        } else {
+          return -1
+        }
+      }
+  )
+}
+
+function sortTeammates(teammates: PgcrTeammate[]) {
+  return teammates.sort((a: PgcrTeammate, b: PgcrTeammate) => {
+        if (a.totalTime < b.totalTime) {
+          return 1
+        } else if (a.totalTime == b.totalTime) {
           return 0
         } else {
           return -1
@@ -113,14 +136,19 @@ function sortWeapons(weapons: PgcrWeapon[]) {
             :src=manifestActivity.imageUrl
             :alt="`${manifestActivity.name} Image`"
         >
-        <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2">
+        <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2 px-2">
+                            <!-- User -->
+          <div v-if="!manifestLoading" class="">
+            <UserSummaryCard :user="sharedDataStore.currentAccount" :loading="manifestLoading"/>
+          </div>
+
           <!-- Activity Name -->
-          <div class="text-text_bright font-extrabold text-5xl text-shadow shadow-bg_box pt-8">
+          <div class="text-text_bright font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
             {{ manifestActivity.name }}
           </div>
 
           <!-- Activity Mode -->
-          <div class="flex gap-1 text-lg font-medium text-shadow shadow-bg_box">
+          <div class="flex gap-1 text-base md:text-lg font-medium text-shadow shadow-bg_box">
             <img
                 class="h-7"
                 :src="manifestActivity.modeIconUrl"
@@ -132,7 +160,7 @@ function sortWeapons(weapons: PgcrWeapon[]) {
           </div>
 
           <!-- Activity Description -->
-          <div class="text-text_dull text-md italic text-shadow shadow-bg_box pt-8">
+          <div class="hidden md:block text-text_dull text-md italic text-shadow shadow-bg_box pt-4">
             {{ manifestActivity.description }}
           </div>
         </div>
@@ -159,8 +187,8 @@ function sortWeapons(weapons: PgcrWeapon[]) {
         </div>
       </div>
 
-      <div v-if="dataLoading" class="p-4 w-full h-80">
-        <LoadingDiv/>
+      <div v-if="dataLoading" class="p-4 w-full h-40">
+        <LoadingDiv text="Requesting data from bungie, this can take a while..." class="!bg-bg_site"/>
       </div>
       <div v-else>
         <!-- Special Tags -->
@@ -176,10 +204,44 @@ function sortWeapons(weapons: PgcrWeapon[]) {
 
         <div class="px-4">
           <div class="flex flex-col divide-y pb-2 divide-text_dull/70">
+            <div class="hidden md:block">
+              <StatsContainer name="Clears">
+                <ActivityClassStat name="Combined" :amount="pgcrStats.combinedClears.amount" show-null/>
+                <ActivityClassStat name="Special Full" :amount="pgcrStats.specialFullClears.amount" show-null big/>
+                <ActivityClassStat name="Full" :amount="pgcrStats.fullClears.amount" show-null big/>
+                <ActivityClassStat name="Checkpoint" :amount="pgcrStats.cpClears.amount" show-null big/>
+                <ActivityClassStat name="Failed" :amount="pgcrStats.failedClears.amount" show-null/>
+
+                <div class="col-span-full w-full pt-2 grid grid-cols-3 place-items-center gap-8">
+                  <ActivityClearTime name="Special Full" :data="pgcrStats.specialFullClears"/>
+                  <ActivityClearTime name="Full" :data="pgcrStats.fullClears"/>
+                  <ActivityClearTime name="Checkpoint" :data="pgcrStats.cpClears"/>
+                </div>
+              </StatsContainer>
+            </div>
+
+            <div class="block md:hidden">
+              <StatsContainer name="Clears" class-overwrite="grid-cols-3 md:grid-cols-5">
+                <ActivityClassStat name="Special Full" :amount="pgcrStats.specialFullClears.amount" show-null big/>
+                <ActivityClassStat name="Full" :amount="pgcrStats.fullClears.amount" show-null big/>
+                <ActivityClassStat name="Checkpoint" :amount="pgcrStats.cpClears.amount" show-null big/>
+                <div class="col-span-full grid grid-cols-2 gap-8">
+                  <ActivityClassStat name="Combined" :amount="pgcrStats.combinedClears.amount" show-null/>
+                  <ActivityClassStat name="Failed" :amount="pgcrStats.failedClears.amount" show-null/>
+                </div>
+
+                <div class="col-span-full w-full pt-12 grid grid-cols-1 place-items-center gap-8">
+                  <ActivityClearTime name="Special Full" :data="pgcrStats.specialFullClears"/>
+                  <ActivityClearTime name="Full" :data="pgcrStats.fullClears"/>
+                  <ActivityClearTime name="Checkpoint" :data="pgcrStats.cpClears"/>
+                </div>
+              </StatsContainer>
+            </div>
+
             <StatsContainer name="History">
-              <div class="w-full col-span-full flex">
+              <div class="w-full col-span-full flex flex-col md:flex-row">
                 <!-- Clear Markers -->
-                <div v-if="pgcrStats.data.length > 0" class="pl-4 h-40 w-[45%]">
+                <div v-if="pgcrStats.data.length > 0" class="pl-4 h-40 w-full md:w-[45%]">
                   <ClearMarkers :activities="pgcrStats"/>
                 </div>
                 <div v-else class="w-[45%] justify-center font-medium italic text-sm text-text_dull flex h-full">
@@ -187,7 +249,7 @@ function sortWeapons(weapons: PgcrWeapon[]) {
                     You have never run this
                   </div>
                 </div>
-                <div class="w-[55%] max-h-40 overflow-y-scroll flex flex-col gap-1 py-1 pr-4">
+                <div class="w-full md:w-[55%] max-h-40 overflow-y-scroll flex flex-col gap-1 py-1 pr-4">
                   <RouterLink v-for="data in pgcrStats.data" :to="`/pgcr/${data.instanceId}`">
                     <div class="text-center">
                       <div class="flex gap-2 items-center clickable px-2 py-1">
@@ -200,7 +262,7 @@ function sortWeapons(weapons: PgcrWeapon[]) {
                         <div v-else class="w-5 h-5 rounded-xl border-2 border-text_dull bg-[#E54D2E]"/>
 
                         <div
-                            class="w-full grid grid-cols-5 gap-2 divide-x-2 divide-text_dull">
+                            class="w-full grid grid-cols-3 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-5 gap-2 divide-x-2 divide-text_dull">
                           <div class="col-span-2">
                             <p v-if="data.completed && Object.keys(data.specialTags).length > 0"
                                class="text-text_bright">
@@ -211,7 +273,7 @@ function sortWeapons(weapons: PgcrWeapon[]) {
                             <p v-else class="text-text_dull">Failed Clear</p>
                           </div>
 
-                          <div class="col-span-2">
+                          <div class="hidden sm:block md:hidden lg:block col-span-2">
                             {{ data.datetime.toLocaleString() }}
                           </div>
 
@@ -223,20 +285,6 @@ function sortWeapons(weapons: PgcrWeapon[]) {
                     </div>
                   </RouterLink>
                 </div>
-              </div>
-            </StatsContainer>
-
-            <StatsContainer name="Clears">
-              <ActivityClassStat name="Combined" :amount="pgcrStats.combinedClears.amount"/>
-              <ActivityClassStat name="Special Full" :amount="pgcrStats.specialFullClears.amount"/>
-              <ActivityClassStat name="Full" :amount="pgcrStats.fullClears.amount"/>
-              <ActivityClassStat name="Checkpoint" :amount="pgcrStats.cpClears.amount"/>
-              <ActivityClassStat name="Failed" :amount="pgcrStats.failedClears.amount"/>
-
-              <div class="col-span-full w-full pt-2 grid grid-cols-3 place-items-center gap-8">
-                <ActivityClearTime name="Special Full" :data="pgcrStats.specialFullClears"/>
-                <ActivityClearTime name="Full" :data="pgcrStats.fullClears"/>
-                <ActivityClearTime name="Checkpoint" :data="pgcrStats.cpClears"/>
               </div>
             </StatsContainer>
 
@@ -284,22 +332,18 @@ function sortWeapons(weapons: PgcrWeapon[]) {
             </StatsContainer>
 
             <StatsContainer name="Weapons">
-              <div class="w-full col-span-full grid grid-cols-3 place-items-center gap-4">
+              <div
+                  class="w-full col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 place-items-center gap-4"
+              >
                 <ActivityWeapon v-for="weapon in sortedWeapons" :data="weapon"/>
+              </div>
+            </StatsContainer>
 
-
-<!--                <Suspense>-->
-<!--                  <Transition mode="out-in" v-for="weapon in sortedWeapons">-->
-<!--                    <KeepAlive>-->
-<!--                      <Suspense suspensible>-->
-<!--                        <ActivityWeapon :data="weapon"/>-->
-<!--                        <template #fallback>-->
-<!--                          <LoadingDiv class="!bg-bg_site w-64 h-[140px]"/>-->
-<!--                        </template>-->
-<!--                      </Suspense>-->
-<!--                    </KeepAlive>-->
-<!--                  </Transition>-->
-<!--                </Suspense>-->
+            <StatsContainer name="Teammates">
+              <div
+                  class="w-full col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 place-items-center gap-4"
+              >
+                <ActivityMember v-for="teammate in sortedTeammates" :data="teammate"/>
               </div>
             </StatsContainer>
           </div>

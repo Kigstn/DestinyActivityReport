@@ -25,6 +25,17 @@ export interface PgcrClear {
     averageTime: PgcrClass,
 }
 
+export interface PgcrTeammate {
+    membershipType: string,
+    membershipId: string,
+
+    fullClears: number,
+    cpClears: number,
+    failedClears: number,
+
+    totalTime: number,
+}
+
 export interface PgcrStats {
     totalTime: PgcrClass,
 
@@ -64,11 +75,14 @@ export interface PgcrStats {
 
     specialTags: { [id: string]: { instanceId: string, amount: number } },
 
+    teammates: { [referenceId: string]: PgcrTeammate },
+
     data: PlayedActivities[],
 }
 
 export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipId: string): PgcrStats {
     const stats: PgcrStats = {
+        teammates: {},
         totalTime: {
             total: 0,
             byClass: {
@@ -487,8 +501,6 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         data: [],
     }
 
-    // todo call pgcrs at the same time
-
     for (const pgcr of pgcrs) {
         const playerCounter = new Set()
         let playerDeaths = 0
@@ -606,6 +618,36 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                         }
                         stats.weaponStats[rId].precisionKills.byClass[character] += weapon.values.uniqueWeaponPrecisionKills.basic.value
                     }
+                }
+            } else {
+                let fullClears = 0
+                let cpClears = 0
+                let failedClears = 0
+
+                if (completed) {
+                    if (fresh) {
+                        fullClears = 1
+                    } else {
+                        cpClears = 1
+                    }
+                } else {
+                    failedClears = 1
+                }
+
+                if (!(entry.player.destinyUserInfo.membershipId in stats.teammates)) {
+                    stats.teammates[entry.player.destinyUserInfo.membershipId] = {
+                        membershipType: entry.player.destinyUserInfo.membershipType.toString(),
+                        membershipId: entry.player.destinyUserInfo.membershipId,
+                        fullClears: fullClears,
+                        cpClears: cpClears,
+                        failedClears: failedClears,
+                        totalTime: entry.values.timePlayedSeconds.basic.value,
+                    }
+                } else {
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears += fullClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears += cpClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears += failedClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].totalTime += entry.values.timePlayedSeconds.basic.value
                 }
             }
         }
@@ -807,7 +849,7 @@ function _addTimeStat(stats: PgcrStats, character: string | null, instanceId: st
             stats[key].fastestTime.byClass[character] = value
         }
         if (value > stats[key].slowestTime.byClass[character]) {
-            stats[key].slowestTime.total = value
+            stats[key].slowestTime.byClass[character] = value
         }
     }
 }

@@ -1,7 +1,7 @@
 import {
     DestinyComponentType,
     type DestinyHistoricalStatsPeriodGroup,
-    type DestinyManifest,
+    type DestinyManifest, type DestinyPostGameCarnageReportData,
     getActivityHistory, getDestinyEntityDefinition,
     getDestinyManifestSlice,
     getHistoricalStatsForAccount, getPostGameCarnageReport, getProfile
@@ -85,7 +85,7 @@ export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
 export interface ActivityStats {
     clears: number
     specialClears: number
-    specialTags: { [id: string]: {instanceId: string, amount: number} }
+    specialTags: { [id: string]: { instanceId: string, amount: number } }
     kills: number
     assists: number
     deaths: number
@@ -121,7 +121,7 @@ export async function getActivities(destinyMembershipId: any, membershipType: an
         funcs.push(_getActivities(destinyMembershipId, membershipType, char.characterId, data, mode))
     }
 
-    // call the all in parallel
+    // call the api in parallel
     await Promise.all(funcs)
 
     return _calcExtras(data)
@@ -570,14 +570,22 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
         }
     }
 
-    // get the PGCRs with the collected info
-    const pgcrs = []
-    for (const hash of instanceIds) {
+    async function _getPGCR(hash: string, data: DestinyPostGameCarnageReportData[]) {
         const pgcrData = await getPostGameCarnageReport(bungieClient, {
             activityId: hash,
         })
-        pgcrs.push(pgcrData.Response)
+        data.push(pgcrData.Response)
     }
+
+    // get the PGCRs with the collected info
+    const pgcrs: DestinyPostGameCarnageReportData[] = []
+    const funcs = []
+    for (const hash of instanceIds) {
+        funcs.push(_getPGCR(hash, pgcrs))
+    }
+
+    // call the api in parallel
+    await Promise.all(funcs)
 
     return pgcrs
 }
