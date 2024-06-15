@@ -72,7 +72,9 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 }
 
 // --------------------------------------------
-
+// todo fix scrollbars looking ugly on edge
+// todo fix edge having a scroll bar for the base layout
+// todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
 // load data on page change
 watch(() => route.params, fetchData, {immediate: true})
 
@@ -143,9 +145,27 @@ function prepareData(data: PlayedActivities[]) {
       }
     }
 
+    // default stats
+    statsByActivity[data.name] = {
+        clears: 0,
+        specialClears: 0,
+        failedClears: 0,
+        specialTags: {},
+        kills: 0,
+        assists: 0,
+        deaths: 0,
+        timeSum: 0,
+        timeMax: 0,
+        timeMin: 0,
+        timeAvg: 0,
+        data: [],
+      }
+
     // calculate stats for activity
+    let activityTimeTotal = 0
     let activityClears = 0
     let activitySpecial = 0
+    let activityFailed = 0
     let activityKills = 0
     let activityAssists = 0
     let activityDeaths = 0
@@ -155,53 +175,59 @@ function prepareData(data: PlayedActivities[]) {
       activityKills += x.values.kills.basic.value
       activityAssists += x.values.assists.basic.value
       activityDeaths += x.values.deaths.basic.value
+      activityTimeTotal += x.lengthSeconds
 
       if (x.completed) {
         activityTimes.push(x.lengthSeconds)
-      }
-      if (x.specialTags) {
-        activitySpecial += 1
-        for (const specialTag of x.specialTags) {
-          if (!(specialTag in activitySpecials)) {
-            activitySpecials[specialTag] = {amount: 0, instanceId: x.instanceId}
+
+        if (x.specialTags) {
+          if (x.specialTags.length > 0) {
+            activitySpecial += 1
+            for (const specialTag of x.specialTags) {
+              if (!(specialTag in activitySpecials)) {
+                activitySpecials[specialTag] = {amount: 0, instanceId: x.instanceId}
+              }
+              activitySpecials[specialTag].amount += 1
+              activitySpecials[specialTag].instanceId = x.instanceId
+            }
+          } else {
+            activityClears += 1
           }
-          activitySpecials[specialTag].amount += 1
-          activitySpecials[specialTag].instanceId = x.instanceId
         }
+      } else {
+        activityFailed += 1
       }
-      if (x.completed) {
-        activityClears += 1
-      }
-    }
-    let activityTimeMax: number | null = null
-    let activityTimeMin: number | null = null
-    let activityTimeAvg: number | null = null
-    let activityTimeSum = 0
-    if (activityTimes.length != 0) {
-      for (let i = 0; i < activityTimes.length; i++) {
-        activityTimeSum += activityTimes[i];
-      }
-      activityTimeMax = Math.max(...activityTimes)
-      activityTimeMin = Math.min(...activityTimes)
-      activityTimeAvg = activityTimeSum / activityTimes.length
-    }
 
-    statsByActivity[data.name] = {
-      clears: activityClears,
-      specialClears: activitySpecial,
-      specialTags: activitySpecials,
-      kills: activityKills,
-      assists: activityAssists,
-      deaths: activityDeaths,
-      timeSum: activityTimeSum,
-      timeMax: activityTimeMax,
-      timeMin: activityTimeMin,
-      timeAvg: activityTimeAvg,
+      let activityTimeMax: number | null = null
+      let activityTimeMin: number | null = null
+      let activityTimeAvg: number | null = null
+      let activityTimeSum = 0
+      if (activityTimes.length != 0) {
+        for (let i = 0; i < activityTimes.length; i++) {
+          activityTimeSum += activityTimes[i];
+        }
+        activityTimeMax = Math.max(...activityTimes)
+        activityTimeMin = Math.min(...activityTimes)
+        activityTimeAvg = activityTimeSum / activityTimes.length
+      }
 
-      data: activityData,
+      statsByActivity[data.name] = {
+        clears: activityClears,
+        specialClears: activitySpecial,
+        failedClears: activityFailed,
+        specialTags: activitySpecials,
+        kills: activityKills,
+        assists: activityAssists,
+        deaths: activityDeaths,
+        timeSum: activityTimeTotal,
+        timeMax: activityTimeMax,
+        timeMin: activityTimeMin,
+        timeAvg: activityTimeAvg,
+
+        data: activityData,
+      }
     }
   }
-
   return statsByActivity
 }
 

@@ -86,6 +86,7 @@ export interface PlayedActivities extends DestinyHistoricalStatsPeriodGroup {
 export interface ActivityStats {
     clears: number
     specialClears: number
+    failedClears: number
     specialTags: { [id: string]: { instanceId: string, amount: number } }
     kills: number
     assists: number
