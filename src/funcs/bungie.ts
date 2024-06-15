@@ -587,6 +587,8 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
     // call the api in parallel
     await Promise.all(funcs)
 
+    // todo sort by date!
+
     return pgcrs
 }
 

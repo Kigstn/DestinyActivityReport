@@ -5,7 +5,7 @@ import UserSummaryInfoTile from "@/components/UserView/UserSummary/UserSummaryIn
 import {formatTime} from "@/funcs/utils";
 
 defineProps<{
-  user: PlayerProfile,
+  user: PlayerProfile | null,
   clears: number,
   specialClears: number,
   timeSpent: number,

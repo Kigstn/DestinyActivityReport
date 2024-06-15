@@ -13,15 +13,19 @@ const router = createRouter({
         },
         {
             path: '/:membershipType/:membershipId',
-            name: "User View",
-            component: UserView,
             meta: {canPinUser: true},
-        },
-        {
-            path: '/:membershipType/:membershipId/:activityName',
-            name: "User Activity View",
-            component: UserActivityView,
-            meta: {canPinUser: true},
+            children: [
+                {
+                    path: '',
+                    name: "User View",
+                    component: UserView,
+                },
+                {
+                    path: ':activityName',
+                    name: "User Activity View",
+                    component: UserActivityView,
+                },
+            ]
         },
     ]
 })

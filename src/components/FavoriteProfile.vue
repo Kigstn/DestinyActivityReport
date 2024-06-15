@@ -4,7 +4,7 @@ import {RouterLink} from "vue-router";
 import {convertMembershipTypeToStr, getPlatformIcon} from "@/funcs/bungie";
 
 const props = defineProps<{
-  membershipType: string,
+  membershipType: string | number,
   membershipId: string,
   iconUrl: string,
   name: string,

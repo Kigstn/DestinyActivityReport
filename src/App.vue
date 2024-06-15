@@ -29,7 +29,7 @@ function addToFavorites() {
             to="/"
             class="flex gap-4 items-center text-accent font-bold text-xl"
         >
-          <img src="/favicon.png" alt="Logo" class="h-12 w-12" />
+          <img src="/favicon.png" alt="Logo" class="h-12 w-12"/>
 
           <p class="hidden md:flex">
             Destiny Activity Report
@@ -87,7 +87,13 @@ function addToFavorites() {
 
     <div class="h-full grow flex flex-col">
       <main class="grow flex justify-around w-full py-4">
-        <RouterView/>
+        <router-view v-slot="{ Component }">
+          <transition>
+            <keep-alive>
+              <component :is="Component"/>
+            </keep-alive>
+          </transition>
+        </router-view>
       </main>
 
       <footer class="bottom-0 h-10 p-2 text-text_bright/50 flex divide-x divide-text_bright/50 justify-end">

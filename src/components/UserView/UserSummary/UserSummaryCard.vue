@@ -4,7 +4,7 @@ import type {PlayerProfile} from "@/funcs/bungie";
 import LoadingDiv from "@/components/LoadingDiv.vue";
 
 defineProps<{
-  user: PlayerProfile,
+  user: PlayerProfile | null,
   loading: boolean,
 }>()
 </script>
@@ -16,7 +16,7 @@ defineProps<{
   </div>
 
   <!-- Everything Loaded-->
-  <div v-else class="relative">
+  <div v-else-if="user" class="relative">
     <img :src="user.emblemUrl" alt="User Emblem" class="h-20 rounded-lg">
     <div class="absolute w-full h-full top-0 py-1 flex items-center text-shadow-xs shadow-bg_box">
       <div class="ml-20 mr-2 w-full h-full flex flex-col justify-between">

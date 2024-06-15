@@ -32,10 +32,11 @@ type ActivityType = [string, ManifestActivity]
 
 const route = useRoute()
 
-const userLoading = ref(false)
-const loading = ref(false)
+const userLoading = ref(true)
+const loading = ref(true)
 const error = ref(null)
 const statsByActivity: Ref<{ [p: string]: ActivityStats }> = ref({})
+const currentMembershipId: Ref<string | null> = ref(null)
 
 // use stores
 const destinyManifest = useDestinyManifestStore()
@@ -76,12 +77,22 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
-  console.log("Router change, getting new user data")
-
   const membershipType = route.params.membershipType
-  const membershipId = route.params.membershipId
+  const membershipId = route.params.membershipId.toString()
+
+  if (route.params.activityName != undefined) {
+    return
+  }
+
+  if (!loading.value && currentMembershipId.value == membershipId) {
+    console.log("DestinyData: Ignoring Router change due to unchanged params")
+    return
+  }
+
+  console.log("DestinyData: Router change, getting new user data")
 
   error.value = null
+  currentMembershipId.value = null
   loading.value = true
   userLoading.value = true
 
@@ -104,6 +115,7 @@ async function fetchData(newRoute: any) {
     throw err
   } finally {
     loading.value = false
+    currentMembershipId.value = membershipId
   }
 }
 
@@ -137,7 +149,7 @@ function prepareData(data: PlayedActivities[]) {
     let activityKills = 0
     let activityAssists = 0
     let activityDeaths = 0
-    let activitySpecials: { [id: string]: {instanceId: string, amount: number} } = {}
+    let activitySpecials: { [id: string]: { instanceId: string, amount: number } } = {}
     const activityTimes: number[] = []
     for (const x of activityData) {
       activityKills += x.values.kills.basic.value
@@ -275,7 +287,9 @@ function resetFilters() {
 function resetActivitiesOnFilterChange() {
   let filteredData: ActivityType[] = []
   let filteredActivityData: { [p: string]: ActivityStats } = {}
-  let found = false
+  if (Object.keys(statsByActivity.value).length == 0) {
+    return
+  }
   for (const entry of destinyManifest.manifest.activities) {
     const data: ManifestActivity | any = entry[1]
     const activityData = getDataByActivities(data)

@@ -30,6 +30,9 @@ const sortedWeapons: Ref<PgcrWeapon[]> = ref([])
 const sortedTeammates: Ref<PgcrTeammate[]> = ref([])
 // @ts-ignore
 const pgcrStats: Ref<PgcrStats> = ref({})
+const currentMembershipId: Ref<string | null> = ref(null)
+const currentActivityName: Ref<string | null> = ref(null)
+
 
 const sharedDataStore = useSharedData()
 
@@ -40,11 +43,20 @@ const route = useRoute()
 watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
-  console.log("Router change, getting new user data")
-
   const membershipType = route.params.membershipType
-  const membershipId = route.params.membershipId
+  const membershipId = route.params.membershipId.toString()
   const activityName: any = route.params.activityName
+
+  if (activityName == undefined) {
+    return
+  }
+
+  if (!dataLoading.value && currentMembershipId.value == membershipId && currentActivityName.value == activityName) {
+    console.log("UserActivity: Ignoring Router change due to unchanged params")
+    return
+  }
+
+  console.log("UserActivity: Router change, getting new user data")
 
   error.value = null
   manifestLoading.value = true
@@ -55,6 +67,8 @@ async function fetchData(newRoute: any) {
   pgcrStats.value = {}
   sortedWeapons.value = []
   sortedTeammates.value = []
+  currentMembershipId.value = null
+  currentActivityName.value = null
 
   // use stores
   const destinyManifest = useDestinyManifestStore()
@@ -78,7 +92,7 @@ async function fetchData(newRoute: any) {
     manifestLoading.value = false
 
     pgcrs.value = await getPGCRs(manifestActivity.value, membershipId, membershipType)
-    pgcrStats.value = calcStats(pgcrs.value, membershipId.toString())
+    pgcrStats.value = calcStats(pgcrs.value, membershipId)
     sortedWeapons.value = sortWeapons(Object.values(pgcrStats.value.weaponStats))
     sortedTeammates.value = sortTeammates(Object.values(pgcrStats.value.teammates))
     console.log(pgcrStats.value)
@@ -88,10 +102,14 @@ async function fetchData(newRoute: any) {
     error.value = err.message
     throw err
   } finally {
+    currentMembershipId.value = membershipId
+    currentActivityName.value = activityName
     dataLoading.value = false
   }
 }
 
+// todo clicking on user profile should link to their page
+// todo make sure this doiesnt say personal flawless anymore
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
         if (a.kills.total < b.kills.total) {
@@ -137,7 +155,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
             :alt="`${manifestActivity.name} Image`"
         >
         <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2 px-2">
-                            <!-- User -->
+          <!-- User -->
           <div v-if="!manifestLoading" class="">
             <UserSummaryCard :user="sharedDataStore.currentAccount" :loading="manifestLoading"/>
           </div>
