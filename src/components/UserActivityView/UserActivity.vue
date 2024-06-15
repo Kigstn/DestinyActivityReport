@@ -95,9 +95,6 @@ async function fetchData(newRoute: any) {
     pgcrStats.value = calcStats(pgcrs.value, membershipId)
     sortedWeapons.value = sortWeapons(Object.values(pgcrStats.value.weaponStats))
     sortedTeammates.value = sortTeammates(Object.values(pgcrStats.value.teammates))
-    console.log(pgcrStats.value)
-
-
   } catch (err: any) {
     error.value = err.message
     throw err
@@ -108,7 +105,6 @@ async function fetchData(newRoute: any) {
   }
 }
 
-// todo clicking on user profile should link to their page
 // todo make sure this doiesnt say personal flawless anymore
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {

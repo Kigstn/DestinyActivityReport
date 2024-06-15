@@ -8,7 +8,7 @@ const props = defineProps<{
 <template>
   <div class="flex flex-col justify-center">
     <p class="self-center font-bold text-3xl text-text_bright">
-      {{ amount }}
+      {{ amount.toLocaleString() }}
     </p>
     <p class="self-center font-medium italic text-sm text-text_dull">
       {{ name }}

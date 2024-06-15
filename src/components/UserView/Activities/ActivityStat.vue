@@ -12,15 +12,15 @@ defineProps<{
   <div :class="`flex flex-col font-bold text-text_bright ${big ? 'text-5xl' : 'text-lg'}`">
     <div class="self-center" v-if="amount == 0 && showNull">
       <p>
-        {{ amount }}
+        {{ amount.toLocaleString() }}
       </p>
     </div>
     <div class="self-center" v-else-if="amount != null && amount != 0 && amount != '0s'">
       <p v-if="typeof amount == 'number'">
-        {{ Math.round(amount * 100) / 100 }}
+        {{ (Math.round(amount * 100) / 100).toLocaleString() }}
       </p>
       <p v-else>
-        {{ amount }}
+        {{ amount.toLocaleString() }}
       </p>
     </div>
     <div v-else class="flex justify-center w-full h-[24px]">

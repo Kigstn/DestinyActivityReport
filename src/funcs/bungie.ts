@@ -9,6 +9,7 @@ import {
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
 import {searchByGlobalNamePost, type UserSearchResponseDetail} from "bungie-api-ts/user";
+import type {PgcrWeapon} from "@/funcs/pgcrStats";
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
@@ -586,8 +587,6 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
 
     // call the api in parallel
     await Promise.all(funcs)
-
-    // todo sort by date!
 
     return pgcrs
 }

@@ -732,6 +732,18 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
     _calcAvgTime(stats, "cpClears")
     _calcAvgTime(stats, "failedClears")
 
+    // sort the pgcrs
+    stats.data = stats.data.sort((a: PlayedActivities, b: PlayedActivities) => {
+            if (a.datetime < b.datetime) {
+                return 1
+            } else if (a.datetime == b.datetime) {
+                return 0
+            } else {
+                return -1
+            }
+        }
+    )
+
     return stats
 }
 

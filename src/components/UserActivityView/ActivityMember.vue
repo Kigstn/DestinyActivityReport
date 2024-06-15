@@ -36,37 +36,39 @@ async function fetchData(newRoute: any) {
 
   <div v-else class="flex flex-col justify-center w-64 bg-bg_site rounded-lg">
     <!-- Weapon Info -->
-    <div class="flex">
-      <!-- Icon -->
-      <div class="shrink-0">
-        <img
-            class="rounded-tl-lg object-cover h-16 w-16"
-            :src="teammate.iconUrl"
-            alt="icon"
-        />
-      </div>
-
-      <!-- Name -->
-      <div class="pl-2 h-16 w-full truncate flex flex-col justify-center border-b border-text_dull">
-        <div class="text-text_bright font-bold">
-          {{ teammate.name }}#{{ teammate.code }}
+    <RouterLink :to="`/${teammate.membershipType}/${teammate.membershipId}`">
+      <div class="flex">
+        <!-- Icon -->
+        <div class="shrink-0">
+          <img
+              class="rounded-tl-lg object-cover h-16 w-16"
+              :src="teammate.iconUrl"
+              alt="icon"
+          />
         </div>
 
-        <div class="flex">
-          <Tooltip>
-            <template v-slot:hoverable>
-              <div class="text-xs text-accent font-bold text-left cursor-help">
-                {{ formatTime(data.totalTime) }}
-              </div>
-            </template>
+        <!-- Name -->
+        <div class="pl-2 h-16 w-full truncate flex flex-col justify-center border-b border-text_dull">
+          <div class="text-text_bright font-bold">
+            {{ teammate.name }}#{{ teammate.code }}
+          </div>
 
-            <template v-slot:content>
-              How long you played together in this activity
-            </template>
-          </Tooltip>
+          <div class="flex">
+            <Tooltip>
+              <template v-slot:hoverable>
+                <div class="text-xs text-accent font-bold text-left cursor-help">
+                  {{ formatTime(data.totalTime) }}
+                </div>
+              </template>
+
+              <template v-slot:content>
+                How long you played together in this activity
+              </template>
+            </Tooltip>
+          </div>
         </div>
       </div>
-    </div>
+    </RouterLink>
 
     <!-- Stats -->
     <div class="grid grid-cols-3 place-items-center gap-2 px-1 p-4">
