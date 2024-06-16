@@ -19,19 +19,20 @@ const props = defineProps<{
   <Tooltip>
     <template v-slot:hoverable>
       <div v-if="link && amount.total != 0 && amount.total != Infinity" class="cursor-pointer">
-        <RouterLink :to="link">
+        <RouterLink :to="link" class="group/clickable">
           <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" :show-null="showNull"
-                        :big="big"/>
+                        :big="big" link/>
           <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" :show-null="showNull"
-                        :big="big"/>
-          <ActivityStat v-else :amount="amount.total" :name="name" :show-null="showNull" :big="big"/>
+                        :big="big" link/>
+          <ActivityStat v-else :amount="amount.total" :name="name" :show-null="showNull" :big="big" link/>
         </RouterLink>
       </div>
 
       <div v-else class="cursor-help">
         <ActivityStat v-if="percent" :amount="formatPercent(amount.total)" :name="name" :show-null="showNull"
                       :big="big"/>
-        <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" :show-null="showNull" :big="big"/>
+        <ActivityStat v-else-if="time" :amount="formatTime(amount.total)" :name="name" :show-null="showNull"
+                      :big="big"/>
         <ActivityStat v-else :amount="amount.total" :name="name" :show-null="showNull" :big="big"/>
       </div>
     </template>

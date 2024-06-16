@@ -18,6 +18,7 @@ import Tooltip from "@/components/UserView/Tooltip.vue";
 import ActivityWeapon from "@/components/ActivityWeapon.vue";
 import ActivityMember from "@/components/UserActivityView/ActivityMember.vue";
 import UserSummaryCard from "@/components/UserView/UserSummary/UserSummaryCard.vue";
+import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
 
 // vars we need
 const manifestLoading = ref(true)
@@ -152,7 +153,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
         >
         <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2 px-2">
           <!-- User -->
-          <div v-if="!manifestLoading" class="">
+          <div v-if="!manifestLoading" class="rounded-lg border-b-2 border-x-2 border-text_bright">
             <UserSummaryCard :user="sharedDataStore.currentAccount" :loading="manifestLoading"/>
           </div>
 
@@ -174,7 +175,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
           </div>
 
           <!-- Activity Description -->
-          <div class="hidden md:block text-text_dull text-md italic text-shadow shadow-bg_box pt-4">
+          <div class="hidden md:block text-text_dull text-md italic text-shadow-xs shadow-bg_box pt-4">
             {{ manifestActivity.description }}
           </div>
         </div>
@@ -267,13 +268,11 @@ function sortTeammates(teammates: PgcrTeammate[]) {
                   <RouterLink v-for="data in pgcrStats.data" :to="`/pgcr/${data.instanceId}`">
                     <div class="text-center">
                       <div class="flex gap-2 items-center clickable px-2 py-1">
-                        <div v-if="data.completed && Object.keys(data.specialTags).length > 0"
-                             class="w-5 h-5 rounded-xl border-2 border-text_dull bg-[#FFE629] "/>
-                        <div v-else-if="data.completed && data.cp!"
-                             class="w-5 h-5 rounded-xl border-2 border-text_dull bg-accent "/>
-                        <div v-else-if="data.completed"
-                             class="w-5 h-5 rounded-xl border-2 border-text_dull bg-[#75AAAA]"/>
-                        <div v-else class="w-5 h-5 rounded-xl border-2 border-text_dull bg-[#E54D2E]"/>
+                        <CompletionIcon
+                            :special="data.completed && Object.keys(data.specialTags).length > 0"
+                            :full="data.completed && !data.cp"
+                            :cp="data.completed"
+                        />
 
                         <div
                             class="w-full grid grid-cols-3 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-5 gap-2 divide-x-2 divide-text_dull">

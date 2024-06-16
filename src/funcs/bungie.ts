@@ -559,6 +559,13 @@ export async function searchBungieUser(query: string, page: number = 0) {
     return res
 }
 
+export async function getSinglePgcr(hash: string) {
+    const pgcrData = await getPostGameCarnageReport(bungieClient, {
+        activityId: hash,
+    })
+    return pgcrData.Response
+}
+
 
 export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: any, membershipType: any) {
     // get the activity overview first - we need the reference IDs of the activities and can't make sure that they are passed
@@ -573,10 +580,8 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
     }
 
     async function _getPGCR(hash: string, data: DestinyPostGameCarnageReportData[]) {
-        const pgcrData = await getPostGameCarnageReport(bungieClient, {
-            activityId: hash,
-        })
-        data.push(pgcrData.Response)
+        const pgcrData = await getSinglePgcr(hash)
+        data.push(pgcrData)
     }
 
     // get the PGCRs with the collected info

@@ -17,11 +17,11 @@ defineProps<{
 
   <!-- Everything Loaded-->
   <RouterLink v-else-if="user" :to="`/${user.membershipType}/${user.membershipId}`">
-    <div class="relative">
+    <div class="relative text-clickable group/clickable">
       <img :src="user.emblemUrl" alt="User Emblem" class="h-20 rounded-lg">
       <div class="absolute w-full h-full top-0 py-1 flex items-center text-shadow-xs shadow-bg_box">
         <div class="ml-20 mr-2 w-full h-full flex flex-col justify-between">
-          <p class="text-text_bright text-2xl font-bold text-ellipsis overflow-hidden">
+          <p class="text-text_bright text-2xl font-bold text-ellipsis overflow-hidden group-hover/clickable:underline">
             {{ user.name }}#{{ user.code }}
           </p>
 

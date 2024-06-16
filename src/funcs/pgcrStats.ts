@@ -80,6 +80,22 @@ export interface PgcrStats {
     data: PlayedActivities[],
 }
 
+export function isFresh(period: Date, pgcr: DestinyPostGameCarnageReportData) {
+    let fresh = false
+
+    if (period < new Date(2022, 2, 22)) {
+        if (pgcr.startingPhaseIndex === 0) {
+            fresh = true
+        }
+    } else {
+        if (pgcr.activityWasStartedFromBeginning === true) {
+            fresh = true
+        }
+    }
+    return fresh
+
+}
+
 export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipId: string): PgcrStats {
     const stats: PgcrStats = {
         teammates: {},
@@ -509,17 +525,8 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         let timePlayed = 0
 
         // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
-        let fresh = false
         let period = new Date(pgcr.period)
-        if (period < new Date(2022, 2, 22)) {
-            if (pgcr.startingPhaseIndex === 0) {
-                fresh = true
-            }
-        } else {
-            if (pgcr.activityWasStartedFromBeginning === true) {
-                fresh = true
-            }
-        }
+        const fresh = isFresh(period, pgcr)
 
         for (const entry of pgcr.entries) {
             playerCounter.add(entry.player.destinyUserInfo.membershipId)

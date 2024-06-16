@@ -91,13 +91,13 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
           <!-- Activity Name -->
           <RouterLink :to="`/${route.params.membershipType}/${route.params.membershipId}/${manifestActivity.name}`">
             <div
-                class="hover:text-text_bright/80 text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-64">
+                class="text-clickable text-text_bright font-extrabold text-2xl text-shadow shadow-bg_box max-w-64">
               {{ props.manifestActivity.name }}
             </div>
           </RouterLink>
 
           <!-- Activity Mode -->
-          <div class="flex gap-1 text-sm font-medium text-shadow shadow-bg_box">
+          <div class="flex gap-1 text-sm font-medium text-shadow-xs shadow-bg_box">
             <img
                 class="h-5"
                 :src="props.manifestActivity.modeIconUrl"

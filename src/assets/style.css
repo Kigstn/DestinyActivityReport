@@ -13,8 +13,12 @@
         @apply w-full grow-0 overflow-y-auto
     }
 
+    .text-clickable {
+        @apply group-hover/clickable:underline group-hover/clickable:brightness-75 hover:underline hover:brightness-75 focus:brightness-75;
+    }
+
     .clickable {
-        @apply bg-accent hover:bg-accent/80 focus:bg-accent/80 text-text_normal hover:text-text_normal/80 font-bold rounded-lg border-text_bright data-[state=on]:border-2 data-[state=active]:border-2 data-[state=open]:border-2 data-[active=true]:border-2;
+        @apply text-clickable text-text_normal bg-accent font-bold rounded-lg border-text_bright data-[state=on]:border-2 data-[state=active]:border-2 data-[state=open]:border-2 data-[active=true]:border-2;
     }
 
     .tooltip {
