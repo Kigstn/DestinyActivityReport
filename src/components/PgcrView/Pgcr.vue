@@ -78,15 +78,19 @@ async function fetchData(newRoute: any) {
     pgcrData.value.duration = pgcr.value.entries[0].values.activityDurationSeconds.basic.value
     pgcrData.value.completed = false
     let playerDeaths = 0
+    const players = new Set()
     for (const entry of pgcr.value.entries) {
       if (entry.values.completed.basic.value == 1) {
         pgcrData.value.completed = true
       }
       playerDeaths += entry.values.deaths.basic.value
+
+      players.add(entry.player.destinyUserInfo.membershipId)
     }
+    pgcrData.value.playerCount = players.size
     pgcrData.value.specialTags = []
     if (pgcrData.value.completed) {
-      pgcrData.value.specialTags = calcSpecials(pgcr.value.entries.length, playerDeaths, pgcr.value.activityDetails.mode, true, pgcrData.value.fresh)
+      pgcrData.value.specialTags = calcSpecials(pgcrData.value.playerCount, playerDeaths, pgcr.value.activityDetails.mode, true, pgcrData.value.fresh)
     }
     pgcrData.value.completionReason = "Failed Clear"
     if (pgcrData.value.specialTags.length > 0) {

@@ -231,25 +231,27 @@ export function calcSpecials(playerCount: number, deaths: number, mode: number, 
 
     // special behaviour for dungeons
     if (mode == 82) {
-        if (deaths == 0) {
-            if (pgcr) {
-                if (fresh) {
-                    specialTags.push("Duo Flawless (Fresh)")
+        if (playerCount == 2) {
+            if (deaths == 0) {
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Duo Flawless (Fresh)")
+                    } else {
+                        specialTags.push("Duo Flawless (CP)")
+                    }
                 } else {
-                    specialTags.push("Duo Flawless (CP)")
+                    specialTags.push("Duo Flawless")
                 }
             } else {
-                specialTags.push("Duo Flawless")
-            }
-        } else {
-            if (pgcr) {
-                if (fresh) {
-                    specialTags.push("Duo (Fresh)")
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Duo (Fresh)")
+                    } else {
+                        specialTags.push("Duo (CP)")
+                    }
                 } else {
-                    specialTags.push("Duo (CP)")
+                    specialTags.push("Duo")
                 }
-            } else {
-                specialTags.push("Duo")
             }
         }
     }
