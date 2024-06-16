@@ -6,10 +6,13 @@ import ErrorDiv from "@/components/ErrorDiv.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
 import {type Ref, ref, watch} from "vue";
 import {useRoute} from "vue-router";
-import type {DestinyDefinition} from "bungie-api-ts/destiny2";
+import type {DestinyDefinition, DestinyHistoricalWeaponStats} from "bungie-api-ts/destiny2";
+import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 
 const props = defineProps<{
-  data: PgcrWeapon,
+  bg: string,
+  data?: PgcrWeapon,
+  pgcrData?: DestinyHistoricalWeaponStats,
 }>()
 
 const loading = ref(true)
@@ -22,7 +25,15 @@ async function fetchData(newRoute: any) {
   weapon.value = null
   loading.value = true
 
-  weapon.value = await getManifestWeapon(props.data.referenceId)
+  let referenceId: string
+      if (props.data) {
+        referenceId = props.data.referenceId
+      } else if (props.pgcrData) {
+        referenceId = props.pgcrData.referenceId.toString()
+      } else {
+        throw ReferenceError
+      }
+  weapon.value = await getManifestWeapon(referenceId)
 
   loading.value = false
 }
@@ -36,10 +47,10 @@ const ammoToImage = {
 
 <template>
   <div v-if="loading" class="w-64 h-[140px]">
-    <LoadingDiv class="!bg-bg_site"/>
+    <LoadingDiv :class="`!${bg}`"/>
   </div>
 
-  <div v-else class="flex flex-col justify-center w-64 bg-bg_site rounded-lg">
+  <div v-else :class="`flex flex-col justify-center w-64 rounded-lg ${bg}`">
     <!-- Weapon Info -->
     <div class="flex">
       <!-- Icon -->
@@ -73,12 +84,20 @@ const ammoToImage = {
 
 
     <!-- Stats -->
-    <div class="grid grid-cols-5 place-items-center gap-2 px-1 p-4">
+    <div v-if="data" class="grid grid-cols-5 place-items-center gap-2 px-1 p-4">
       <div class="col-span-2">
         <ActivityClassStat name="Kills" :amount="data.kills"/>
       </div>
       <div class="col-span-3">
         <ActivityClassStat name="Precision Kills" :amount="data.precisionKillsWithPercent"/>
+      </div>
+    </div>
+    <div v-else-if="pgcrData" class="grid grid-cols-5 place-items-center gap-2 px-1 p-4">
+      <div class="col-span-2">
+        <ActivityStat name="Kills" :amount="pgcrData.values.uniqueWeaponKills.basic.value"/>
+      </div>
+      <div class="col-span-3">
+        <ActivityStat name="Precision Kills" :amount="pgcrData.values.uniqueWeaponPrecisionKills.basic.value"/>
       </div>
     </div>
   </div>

@@ -598,6 +598,7 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
 }
 
 export async function getManifestWeapon(hash: string) {
+    // todo fifo cache for last 1k weapons or so
     const res = await getDestinyEntityDefinition(bungieClient, {
         entityType: "DestinyInventoryItemDefinition",
         hashIdentifier: hash,

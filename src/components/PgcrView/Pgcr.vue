@@ -7,12 +7,16 @@ import Tag from "@/components/UserView/Tag.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
 import type {DestinyPostGameCarnageReportData} from "bungie-api-ts/destiny2";
 import ErrorDiv from "@/components/ErrorDiv.vue";
-import {calcStats, type PgcrStats, type PgcrTeammate, type PgcrWeapon} from "@/funcs/pgcrStats";
+import {calcStats, isFresh, type PgcrStats, type PgcrTeammate, type PgcrWeapon} from "@/funcs/pgcrStats";
 import ClearMarkers from "@/components/UserView/Activities/ClearMarkers.vue";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
 import UserSummaryCard from "@/components/UserView/UserSummary/UserSummaryCard.vue";
 import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 import Player from "@/components/PgcrView/Player.vue";
+import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
+import ActivityWeapon from "@/components/ActivityWeapon.vue";
+import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
+import {formatTime} from "@/funcs/utils";
 
 // vars we need
 const dataLoading = ref(true)
@@ -21,10 +25,8 @@ const error = ref(null)
 const manifestActivity: Ref<ManifestActivity> = ref(null)
 // @ts-ignore
 const pgcr: Ref<DestinyPostGameCarnageReportData> = ref(null)
+const pgcrData: Ref<any> = ref({})
 const currentPgcrId: Ref<string | null> = ref(null)
-
-
-const sharedDataStore = useSharedData()
 
 // --------------------------------------------
 
@@ -33,6 +35,10 @@ const route = useRoute()
 watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
+  if (route.params.pgcrId == undefined) {
+    return
+  }
+
   const pgcrId = route.params.pgcrId.toString()
 
   if (!dataLoading.value && currentPgcrId.value == pgcrId) {
@@ -48,6 +54,7 @@ async function fetchData(newRoute: any) {
   manifestActivity.value = null
   // @ts-ignore
   pgcr.value = null
+  pgcrData.value = {}
   currentPgcrId.value = null
 
   // use stores
@@ -57,11 +64,31 @@ async function fetchData(newRoute: any) {
     pgcr.value = await getSinglePgcr(pgcrId)
     const activityId = pgcr.value.activityDetails.referenceId.toString()
 
+    // metadata
+    pgcrData.value.period = new Date(pgcr.value.period)
+    pgcrData.value.fresh = isFresh(pgcrData.value.period, pgcr.value)
+    pgcrData.value.duration = pgcr.value.entries[0].values.activityDurationSeconds.basic.value
+    pgcrData.value.specialTags = [] // todo
+    pgcrData.value.completed = false
+    for (const entry of pgcr.value.entries) {
+      if (entry.values.completed.basic.value == 1) {
+        pgcrData.value.completed = true
+        break
+      }
+    }
+    pgcrData.value.completionReason = "Failed Clear"
+    if (pgcrData.value.specialTags.length > 0) {
+      pgcrData.value.completionReason = "Special Full Clear"
+    } else if (pgcrData.value.completed && pgcrData.value.fresh) {
+      pgcrData.value.completionReason = "Full Clear"
+    } else if (pgcrData.value.completed) {
+      pgcrData.value.completionReason = "Checkpoint Clear"
+    }
+
     // get the correct manifest activity
     for (const entry of destinyManifest.manifest.activities) {
       // @ts-ignore
       if (entry[1].hash.includes(activityId)) {
-        console.log("Found")
         // @ts-ignore
         manifestActivity.value = entry[1]
         break
@@ -71,9 +98,7 @@ async function fetchData(newRoute: any) {
       throw Error("This activity does not exist! Make sure there are no typos in your URL :)")
     }
 
-    // todo     document.title = `${sharedDataStore.currentAccount.name} | ${activityName}`
-
-
+    document.title = `PGCR | ${manifestActivity.value.name}`
   } catch (err: any) {
     error.value = err.message
     throw err
@@ -108,6 +133,8 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       }
   )
 }
+
+// todo special conditions for data that is wrong in the bungie API
 </script>
 
 <template>
@@ -166,32 +193,50 @@ function sortTeammates(teammates: PgcrTeammate[]) {
 
         <!-- Date -->
         <div class="absolute bottom-2 left-2 flex gap-4">
-          <ActivityStat name="Date" :amount="new Date(pgcr.period).toLocaleDateString()" time/>
-          <ActivityStat name="Time" :amount="new Date(pgcr.period).toLocaleTimeString()" time/>
+
         </div>
       </div>
 
-      <div>
-        Was fresh
-                Startingphaseindex
+      <div class="flex flex-col divide-y divide-text_dull/70 px-4">
+        <div class="pb-4">
+          <StatsContainer name="Basic Information">
+            <div class="col-span-full grid grid-cols-2 md:grid-cols-3 w-full gap-4">
+              <div class="flex flex-col justify-center place-items-center">
+                <div>
+                  <CompletionIcon
+                      :special="pgcrData.specialTags.length > 0"
+                      :full="pgcrData.completed && pgcrData.fresh"
+                      :cp="pgcrData.completed"
+                  />
+                </div>
+                <div class="font-medium italic text-sm text-text_dull mt-1">
+                  {{ pgcrData.completionReason }}
+                </div>
+              </div>
+              <ActivityStat name="Starting Checkpoint" :amount="pgcrData.fresh ? 'Fresh' : pgcr.startingPhaseIndex"/>
+              <ActivityStat name="Score" :amount="pgcr.entries[0].values.teamScore.basic.value"/>
 
-        Duration
-        CP/Special/Full/Fail
-      </div>
+              <ActivityStat name="Duration" :amount="formatTime(pgcrData.duration)" time/>
+              <ActivityStat name="Date" :amount="pgcrData.period.toLocaleDateString()" time/>
+              <ActivityStat name="Time" :amount="pgcrData.period.toLocaleTimeString()" time/>
+            </div>
+          </StatsContainer>
+        </div>
 
-      <div class="flex flex-col gap-4 p-4">
-        <Transition mode="out-in" v-for="player in pgcr.entries">
-          <KeepAlive>
-            <Suspense>
-              <Player :data="player" :period="new Date(pgcr.period)" :pgcr="pgcr"/>
-
-              <!-- loading state -->
-              <template #fallback>
-                <LoadingDiv class="!h-36 w-full !bg-bg_site"/>
-              </template>
-            </Suspense>
-          </KeepAlive>
-        </Transition>
+        <div class="pt-4">
+          <StatsContainer name="Fireteam">
+            <div class="col-span-full w-full flex flex-col gap-4">
+              <Player
+                  v-for="player in pgcr.entries"
+                  :data="player"
+                  :period="pgcrData.period"
+                  :pgcr="pgcr"
+                  :fresh="pgcrData.fresh"
+                  :specialTags="pgcrData.specialTags"
+              />
+            </div>
+          </StatsContainer>
+        </div>
       </div>
     </div>
   </div>

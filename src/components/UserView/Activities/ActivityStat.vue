@@ -2,7 +2,7 @@
 
 defineProps<{
   name: string,
-  amount: string | number | null,
+  amount: string | number | null | undefined,
   showNull?: boolean,
   big?: boolean,
   link?: boolean,

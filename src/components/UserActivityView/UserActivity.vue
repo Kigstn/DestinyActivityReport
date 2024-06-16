@@ -348,7 +348,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
               <div
                   class="w-full col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 place-items-center gap-4"
               >
-                <ActivityWeapon v-for="weapon in sortedWeapons" :data="weapon"/>
+                <ActivityWeapon v-for="weapon in sortedWeapons" :data="weapon" bg="bg-bg_site"/>
               </div>
             </StatsContainer>
 

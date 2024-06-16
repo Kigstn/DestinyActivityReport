@@ -7,7 +7,6 @@ const props = defineProps<{
   hint?: string,
   hintTooltip?: string,
 }>()
-console.log(props.hint)
 </script>
 
 <template>

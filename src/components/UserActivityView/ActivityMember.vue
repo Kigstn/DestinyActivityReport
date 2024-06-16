@@ -21,6 +21,10 @@ const route = useRoute()
 watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
+  if (teammate.value != null && props.data.membershipId == teammate.value.membershipId) {
+    return
+  }
+
   // @ts-ignore
   teammate.value = null
   loading.value = true
