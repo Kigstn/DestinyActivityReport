@@ -158,7 +158,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
           </div>
 
           <!-- Activity Name -->
-          <div class="text-text_bright font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
+          <div class="text-text_bright text-center font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
             {{ manifestActivity.name }}
           </div>
 

@@ -48,8 +48,6 @@ export const useDestinyManifestStore = defineStore('destinyManifest', () => {
 export const useFilterStore = defineStore('filter', () => {
     const destinyManifest = useDestinyManifestStore()
 
-    // todo share the state. maybe solved when we do hot reloading
-
     // filters
     const activityNameFilter: Ref<string> = ref("")
     const activityModeFilter: Ref<string[]> = ref([])

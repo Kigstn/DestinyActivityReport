@@ -145,41 +145,111 @@ export const specialTags = {
     ],
 }
 
-export function calcSpecials(playerCount: number, deaths: number, mode: number) {
+export function calcSpecials(playerCount: number, deaths: number, mode: number, pgcr: boolean = false, fresh: boolean = false) {
     const specialTags = []
 
     if (playerCount == 1 && deaths == 0) {
-        specialTags.push("Solo Flawless")
+        if (pgcr) {
+            if (fresh) {
+                specialTags.push("Solo Flawless (Fresh)")
+            } else {
+                specialTags.push("Solo Flawless (CP)")
+            }
+        } else {
+            specialTags.push("Solo Flawless")
+        }
     } else if (deaths == 0) {
-        specialTags.push("Personal Flawless")
+        if (pgcr) {
+            if (fresh) {
+                specialTags.push("Flawless (Fresh)")
+            } else {
+                specialTags.push("Flawless (CP)")
+            }
+        } else {
+            specialTags.push("Personal Flawless")
+        }
     } else if (playerCount == 1) {
-        specialTags.push("Solo")
+        if (pgcr) {
+            if (fresh) {
+                specialTags.push("Solo (Fresh)")
+            } else {
+                specialTags.push("Solo (CP)")
+            }
+        } else {
+            specialTags.push("Solo")
+        }
     }
 
     // special behaviour for raids
     if (mode == 4) {
         if (playerCount == 2) {
             if (deaths == 0) {
-                specialTags.push("Duo")
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Duo Flawless (Fresh)")
+                    } else {
+                        specialTags.push("Duo Flawless (CP)")
+                    }
+                } else {
+                    specialTags.push("Duo Flawless")
+                }
             } else {
-                specialTags.push("Duo Flawless")
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Duo (Fresh)")
+                    } else {
+                        specialTags.push("Duo (CP)")
+                    }
+                } else {
+                    specialTags.push("Duo")
+                }
             }
         } else if (playerCount == 3) {
             if (deaths == 0) {
-                specialTags.push("Trio")
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Trio Flawless (Fresh)")
+                    } else {
+                        specialTags.push("Trio Flawless (CP)")
+                    }
+                } else {
+                    specialTags.push("Trio Flawless")
+                }
             } else {
-                specialTags.push("Trio Flawless")
+                if (pgcr) {
+                    if (fresh) {
+                        specialTags.push("Trio (Fresh)")
+                    } else {
+                        specialTags.push("Trio (CP)")
+                    }
+                } else {
+                    specialTags.push("Trio")
+                }
             }
         }
     }
 
     // special behaviour for dungeons
     if (mode == 82) {
-        if (playerCount == 2) {
-            if (deaths == 0) {
-                specialTags.push("Duo")
+        if (deaths == 0) {
+            if (pgcr) {
+                if (fresh) {
+                    specialTags.push("Duo Flawless (Fresh)")
+                } else {
+                    specialTags.push("Duo Flawless (CP)")
+                }
             } else {
                 specialTags.push("Duo Flawless")
+            }
+        } else {
+            if (pgcr) {
+                if (fresh) {
+                    specialTags.push("Duo (Fresh)")
+                } else {
+                    specialTags.push("Duo (CP)")
+                }
+            } else {
+                specialTags.push("Duo")
             }
         }
     }

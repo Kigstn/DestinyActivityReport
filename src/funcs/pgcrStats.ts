@@ -663,7 +663,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         const playerCount = playerCounter.size
         let specialTags: string[] = []
         if (completed && fresh) {
-            specialTags = calcSpecials(playerCount, playerDeaths, pgcr.activityDetails.mode)
+            specialTags = calcSpecials(playerCount, playerDeaths, pgcr.activityDetails.mode, true, fresh)
         }
         for (const tag of specialTags) {
             if (!(tag in stats.specialTags)) {

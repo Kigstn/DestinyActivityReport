@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import {useRoute} from "vue-router";
 import {type Ref, ref, watch} from "vue";
-import {getActivities, getPGCRs, getPlayerInfo, getSinglePgcr, type ManifestActivity} from "@/funcs/bungie";
+import {
+  calcSpecials,
+  getActivities,
+  getPGCRs,
+  getPlayerInfo,
+  getSinglePgcr,
+  type ManifestActivity
+} from "@/funcs/bungie";
 import {useDestinyManifestStore, useSharedData} from "@/funcs/store";
 import Tag from "@/components/UserView/Tag.vue";
 import LoadingDiv from "@/components/LoadingDiv.vue";
@@ -17,6 +24,7 @@ import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
 import ActivityWeapon from "@/components/ActivityWeapon.vue";
 import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
 import {formatTime} from "@/funcs/utils";
+import BoxClickable from "@/components/UserView/TagClickable.vue";
 
 // vars we need
 const dataLoading = ref(true)
@@ -68,13 +76,17 @@ async function fetchData(newRoute: any) {
     pgcrData.value.period = new Date(pgcr.value.period)
     pgcrData.value.fresh = isFresh(pgcrData.value.period, pgcr.value)
     pgcrData.value.duration = pgcr.value.entries[0].values.activityDurationSeconds.basic.value
-    pgcrData.value.specialTags = [] // todo
     pgcrData.value.completed = false
+    let playerDeaths = 0
     for (const entry of pgcr.value.entries) {
       if (entry.values.completed.basic.value == 1) {
         pgcrData.value.completed = true
-        break
       }
+      playerDeaths += entry.values.deaths.basic.value
+    }
+    pgcrData.value.specialTags = []
+    if (pgcrData.value.completed) {
+      pgcrData.value.specialTags = calcSpecials(pgcr.value.entries.length, playerDeaths, pgcr.value.activityDetails.mode, true, pgcrData.value.fresh)
     }
     pgcrData.value.completionReason = "Failed Clear"
     if (pgcrData.value.specialTags.length > 0) {
@@ -84,6 +96,7 @@ async function fetchData(newRoute: any) {
     } else if (pgcrData.value.completed) {
       pgcrData.value.completionReason = "Checkpoint Clear"
     }
+
 
     // get the correct manifest activity
     for (const entry of destinyManifest.manifest.activities) {
@@ -156,7 +169,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
         >
         <div class="absolute top-0 h-full w-full flex flex-col items-center gap-2 px-2">
           <!-- Activity Name -->
-          <div class="text-text_bright font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
+          <div class="text-text_bright font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box text-center">
             {{ manifestActivity.name }}
           </div>
 
@@ -190,10 +203,13 @@ function sortTeammates(teammates: PgcrTeammate[]) {
             </Tag>
           </div>
         </div>
+      </div>
 
-        <!-- Date -->
-        <div class="absolute bottom-2 left-2 flex gap-4">
-
+      <div v-if="Object.keys(pgcrData.specialTags).length > 0" class="h-10 flex space-x-1 py-1 px-2">
+        <div v-for="name in pgcrData.specialTags">
+          <div class="flex w-fit py-0.5 px-1.5 rounded-lg min-w-14 justify-center truncate text-text_normal bg-accent font-bold border-text_bright">
+            {{ name }}
+          </div>
         </div>
       </div>
 
