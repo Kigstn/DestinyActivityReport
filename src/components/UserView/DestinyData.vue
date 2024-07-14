@@ -122,7 +122,6 @@ async function fetchData(newRoute: any) {
 }
 
 // --------------------------------------------
-
 // sort data by activities
 function prepareData(data: PlayedActivities[]) {
   const dataByActivities: { [name: string]: any[] } = {}
@@ -147,19 +146,19 @@ function prepareData(data: PlayedActivities[]) {
 
     // default stats
     statsByActivity[data.name] = {
-        clears: 0,
-        specialClears: 0,
-        failedClears: 0,
-        specialTags: {},
-        kills: 0,
-        assists: 0,
-        deaths: 0,
-        timeSum: 0,
-        timeMax: 0,
-        timeMin: 0,
-        timeAvg: 0,
-        data: [],
-      }
+      clears: 0,
+      specialClears: 0,
+      failedClears: 0,
+      specialTags: {},
+      kills: 0,
+      assists: 0,
+      deaths: 0,
+      timeSum: 0,
+      timeMax: 0,
+      timeMin: 0,
+      timeAvg: 0,
+      data: [],
+    }
 
     // calculate stats for activity
     let activityTimeTotal = 0
@@ -589,7 +588,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
         <div v-if="loading" class="activities_grid">
           <div class="w-[320px] h-[533.333px]" v-for="x in [...Array(8).keys()]">
-            <LoadingDiv/>
+            <LoadingDiv text="Requesting data from bungie, this can take a while..." class="!bg-bg_site"/>
           </div>
         </div>
 

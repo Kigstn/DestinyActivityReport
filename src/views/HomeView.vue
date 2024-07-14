@@ -36,7 +36,7 @@ import FaqItem from "@/components/FaqItem.vue";
       </p>
 
       <AccordionRoot
-          class="rounded-lg"
+          class="flex flex-col gap-1"
           type="single"
           :collapsible="true"
       >

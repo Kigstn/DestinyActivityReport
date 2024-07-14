@@ -132,6 +132,10 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       }
   )
 }
+// todo this doesnt show up --> https://activities.report/pgcr/5726788293
+// todo this is obv wrong too -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal
+// todo filter activities where you changed characters
+// todo completion % iwo
 </script>
 
 <template>

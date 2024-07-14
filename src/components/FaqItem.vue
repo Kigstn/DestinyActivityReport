@@ -9,9 +9,9 @@ defineProps<{
 
 <template>
   <AccordionItem
-      class="text-left clickable !rounded-none mt-px overflow-hidden first:mt-0 first:!rounded-t-lg last:!rounded-b-lg focus-within:relative focus-within:z-10 leading-none "
+      class="text-left !rounded-none mt-px overflow-hidden first:mt-0 first:!rounded-t-lg last:!rounded-b-lg focus-within:relative focus-within:z-10 leading-none "
       :value="question">
-    <AccordionHeader class="flex">
+    <AccordionHeader class="flex clickable">
       <AccordionTrigger
           class="flex flex-1 min-h-12 items-center justify-between p-1 px-5 text-lg outline-none group data-[state=open]:text-text_bright leading-none text-left">
         <p>

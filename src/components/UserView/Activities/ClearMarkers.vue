@@ -12,7 +12,6 @@
       </div>
 
       <div class="flex flex-col font-medium italic text-sm text-text_dull justify-between">
-        <!-- todo -->
         <p>
           {{ maxTime }}
         </p>
@@ -42,12 +41,6 @@ ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend)
 
 
 export default {
-  // list[{
-  //   datetime: Date,
-  //   lengthSeconds: number,
-  //   completed: boolean,
-  //   specialTags: boolean,
-  // }]
   props: ["activities"],
 
   components: {Scatter},
@@ -134,6 +127,7 @@ export default {
       return [info.label, formatTime(info.lengthSeconds), info.datetime.toLocaleString()]
     }
 
+
     return {
       maxTime: formatTime(max),
       minTime: formatTime(min),
@@ -192,8 +186,7 @@ export default {
               averageLine
             }
           }
-        }
-        ,
+        },
         scales: {
           x: {
             border: {
@@ -208,23 +201,17 @@ export default {
               display: false,
             },
             beginAtZero: true
+          },
+        },
+        onClick: (e) => {
+          const data = e.chart.tooltip.dataPoints
+          if (data) {
+            const coords = data[0].parsed
+            const info = valsTranslation[coords.x + "," + coords.y]
+            const redirectUrl = `/pgcr/${info.instanceId}`
+            this.$router.push(redirectUrl)
           }
-          ,
-          y: {
-            border: {
-              display: false
-            }
-            ,
-            ticks: {
-              display: false
-            }
-            ,
-            grid: {
-              display: false
-            },
-          }
-          ,
-        }
+        },
       }
     }
   }

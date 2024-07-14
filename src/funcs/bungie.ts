@@ -1,5 +1,5 @@
 import {
-    DestinyComponentType,
+    DestinyComponentType, type DestinyDefinition,
     type DestinyHistoricalStatsPeriodGroup,
     type DestinyManifest, type DestinyPostGameCarnageReportData,
     getActivityHistory, getDestinyEntityDefinition,
@@ -10,6 +10,7 @@ import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
 import {searchByGlobalNamePost, type UserSearchResponseDetail} from "bungie-api-ts/user";
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
+import {LRUCache} from "lru-cache";
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
@@ -669,13 +670,22 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
     return pgcrs
 }
 
-export async function getManifestWeapon(hash: string) {
-    // todo fifo cache for last 1k weapons or so
+const weaponCache = new LRUCache({max: 1000})
+
+export async function getManifestWeapon(hash: string): Promise<DestinyDefinition> {
+    const cacheItem = weaponCache.get(hash)
+    if (cacheItem != undefined) {
+        return cacheItem
+    }
+
     const res = await getDestinyEntityDefinition(bungieClient, {
         entityType: "DestinyInventoryItemDefinition",
         hashIdentifier: hash,
     })
-    return res.Response
+    const r = res.Response
+
+    weaponCache.set(hash, r)
+    return r
 }
 
 
