@@ -240,6 +240,16 @@ function resetSorting() {
   resetActivitiesOnFilterChange()
 }
 
+function _sort(a_value: string | number, b_value: string | number) {
+  if (a_value > b_value) {
+    return 1
+  } else if (a_value == b_value) {
+    return 0
+  } else {
+    return -1
+  }
+}
+
 function sortedActivities(data: ActivityType[]) {
   let sortedData: ActivityType[] = []
 
@@ -247,26 +257,20 @@ function sortedActivities(data: ActivityType[]) {
     case "Activity Mode": {
       // sort them by mode and then by name
       const partlySorted = data.sort((a: ActivityType, b: ActivityType) => {
-            if (a[1].activityMode > b[1].activityMode) {
-              return 1
-            } else if (a[1].activityMode == b[1].activityMode) {
-              return 0
-            } else {
-              return -1
-            }
+            const a_value = a[1].activityMode
+            const b_value = b[1].activityMode
+
+            return _sort(a_value, b_value)
           }
       )
       // if mode is same check name
       sortedData = partlySorted.sort((a, b) => {
         // check mode - if same check name
         if (a[1].activityMode == b[1].activityMode) {
-          if (a[1].name > b[1].name) {
-            return 1
-          } else if (a[1].name == b[1].name) {
-            return 0
-          } else {
-            return -1
-          }
+          const a_value = a[1].name
+          const b_value = b[1].name
+
+          return _sort(a_value, b_value)
         } else {
           return -1
         }
@@ -276,13 +280,159 @@ function sortedActivities(data: ActivityType[]) {
 
     case "Activity Name": {
       sortedData = data.sort((a: ActivityType, b: ActivityType) => {
-            if (a[1].name > b[1].name) {
-              return 1
-            } else if (a[1].name == b[1].name) {
-              return 0
-            } else {
-              return -1
+            const a_value = a[1].name
+            const b_value = b[1].name
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Total Clears": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).clears + getDataByActivities(a[1]).specialClears
+            const b_value = getDataByActivities(b[1]).clears + getDataByActivities(b[1]).specialClears
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Clears": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).clears
+            const b_value = getDataByActivities(b[1]).clears
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Special Clears": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).specialClears
+            const b_value = getDataByActivities(b[1]).specialClears
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Failed Clears": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).failedClears
+            const b_value = getDataByActivities(b[1]).failedClears
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Fastest Time": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            let a_value = getDataByActivities(a[1]).timeMin
+            let b_value = getDataByActivities(b[1]).timeMin
+
+            if (a_value == null || a_value == 0) {
+              a_value = Infinity
             }
+            if (b_value == null || b_value == 0) {
+              b_value = Infinity
+            }
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Average Time": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            let a_value = getDataByActivities(a[1]).timeAvg
+            let b_value = getDataByActivities(b[1]).timeAvg
+
+            if (a_value == null || a_value == 0) {
+              a_value = Infinity
+            }
+            if (b_value == null || b_value == 0) {
+              b_value = Infinity
+            }
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Total Time": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            let a_value = getDataByActivities(a[1]).timeSum
+            let b_value = getDataByActivities(b[1]).timeSum
+
+            if (a_value == null || a_value == 0) {
+              a_value = Infinity
+            }
+            if (b_value == null || b_value == 0) {
+              b_value = Infinity
+            }
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Slowest Time": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            let a_value = getDataByActivities(a[1]).timeMax
+            let b_value = getDataByActivities(b[1]).timeMax
+
+            if (a_value == null) {
+              a_value = 0
+            }
+            if (b_value == null) {
+              b_value = 0
+            }
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Kills": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).kills
+            const b_value = getDataByActivities(b[1]).kills
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Assists": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).assists
+            const b_value = getDataByActivities(b[1]).assists
+
+            return _sort(a_value, b_value)
+          }
+      )
+      break
+    }
+
+    case "Deaths": {
+      sortedData = data.sort((a: ActivityType, b: ActivityType) => {
+            const a_value = getDataByActivities(a[1]).deaths
+            const b_value = getDataByActivities(b[1]).deaths
+
+            return _sort(a_value, b_value)
           }
       )
       break
@@ -378,12 +528,12 @@ function resetActivitiesOnFilterChange() {
     }
 
     // activity min clears
-    if ((activityData.clears) < filterStore.activityMinTotalClearsFilter) {
+    if ((activityData.clears) < filterStore.activityMinClearsFilter) {
       continue
     }
 
     // activity min special clears
-    if ((activityData.specialClears) < filterStore.activityMinTotalClearsFilter) {
+    if ((activityData.specialClears) < filterStore.activityMinSpecialClearsFilter) {
       continue
     }
 
@@ -471,8 +621,6 @@ function onLoadMore() {
 function getDataByActivities(activity: ManifestActivity): ActivityStats {
   return statsByActivity.value[activity.name]
 }
-
-// todo clears / kills / ... for filters / sorting
 </script>
 
 <template>

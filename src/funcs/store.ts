@@ -83,12 +83,29 @@ export const useFilterStore = defineStore('filter', () => {
 })
 export const useSortingStore = defineStore('sorting', () => {
     const activitySortingOptions = {
-        "Activity Info": [
+        "Basic Info": [
             "Activity Mode",
             "Activity Name"
-        ]
+        ],
+        "Clears": [
+            "Total Clears",
+            "Clears",
+            "Special Clears",
+            "Failed Clears",
+        ],
+        "Times": [
+            "Fastest Time",
+            "Slowest Time",
+            "Average Time",
+            "Total Time",
+        ],
+        "Stats": [
+            "Kills",
+            "Assists",
+            "Deaths",
+        ],
     }
-    const activitySortingType: Ref<"Activity Name" | "Activity Mode"> = ref("Activity Mode")
+    const activitySortingType = ref("Activity Mode")
     const activitySortingMode: Ref<"Asc." | "Desc."> = ref("Asc.")
 
     function resetSorting() {

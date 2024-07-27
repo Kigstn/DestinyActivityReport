@@ -27,6 +27,7 @@ watchEffect(() => {content.value = props.content})
 watch(
     content,
     () => {
+            console.log("Emitted Filter Change")
       emit("filterChange", content.value)
     },
 )

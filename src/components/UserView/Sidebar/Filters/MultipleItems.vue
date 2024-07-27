@@ -40,7 +40,6 @@ watch(
     content,
     () => {
       searchTerm.value = ""
-      console.log("Emitted Filter Change")
       emit("filterChange", content.value)
     },
     {deep: true}
@@ -57,8 +56,6 @@ onMounted(() => {
     }
   })
 })
-
-// todo scrollbar not visible
 </script>
 
 <template>
@@ -117,13 +114,13 @@ onMounted(() => {
     </ComboboxAnchor>
 
     <ComboboxContent
-        class="bg-accent text-text_normal absolute z-20 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+        class="bg-accent text-text_normal absolute z-20 w-full mt-2 min-w-[160px] rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
     >
       <ComboboxViewport class="p-[5px]">
         <ComboboxEmpty class="text-text_dull text-xs text-center p-1"/>
 
         <!-- Render Arrays-->
-        <ComboboxGroup v-if="Array.isArray(options)">
+        <ComboboxGroup v-if="Array.isArray(options)" class="max-h-80 overflow-y-scroll">
           <ComboboxItem
               v-for="(option, index) in options"
               class="text-sm leading-none rounded-lg flex items-center min-h-6 px-6 py-1 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"
