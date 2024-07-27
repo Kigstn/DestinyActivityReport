@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="animate-pulse bg-bg_box w-full h-full rounded-lg text-center flex flex-col justify-center text-text_dull text-base italic p-8">
+  <div :class="`animate-pulse bg-bg_box w-full h-full rounded-lg text-center flex flex-col justify-center text-text_dull text-base italic ${text && 'p-8'}`">
     {{ text && text}}
   </div>
 </template>

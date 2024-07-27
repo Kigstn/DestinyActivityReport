@@ -74,7 +74,6 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 
 // --------------------------------------------
 // todo mass unpin is wonky
-// todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
 // load data on page change
 watch(() => route.params, fetchData, {immediate: true})
 
@@ -232,7 +231,6 @@ function prepareData(data: PlayedActivities[]) {
 
 // --------------------------------------------
 // sorting
-// todo - whenever we can filter by clears / special clears. for that the information needs to be calculated earlier than it currently is
 // <!-- Sort by: Clears, Special Clears, Time Spent, Fastest, Kills, Assists, Deaths -->
 
 function resetSorting() {

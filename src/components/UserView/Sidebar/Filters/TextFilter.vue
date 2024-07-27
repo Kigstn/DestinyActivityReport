@@ -19,7 +19,7 @@ function filterChange () {
 </script>
 
 <template>
-  <div v-if="loading" class="h-14 w-full">
+  <div v-if="loading" class="!h-14 w-full">
     <LoadingDiv />
   </div>
 

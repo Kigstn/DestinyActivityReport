@@ -150,7 +150,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       }
   )
 }
-
+// todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
 // todo special conditions for data that is wrong in the bungie API
 </script>
 

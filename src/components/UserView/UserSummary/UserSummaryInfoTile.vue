@@ -14,7 +14,7 @@ defineProps<{
   <div class="flex flex-col justify-center">
     <div class="flex flex-col h-4/5 min-h-14 w-32 justify-center items-center">
       <Tag v-if="!loading" class="!rounded-lg !w-full overflow-x-clip">
-        <Clears :amount="value" :name="name"/>
+        <Clears :amount="value" :name="name" small/>
       </Tag>
       <LoadingDiv v-else/>
     </div>
