@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {formatTime} from "@/funcs/utils";
 import type {PlayerProfile} from "@/funcs/bungie";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 
 defineProps<{
   user: PlayerProfile | null,

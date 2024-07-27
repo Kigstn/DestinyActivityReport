@@ -2,8 +2,8 @@
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
 import {getManifestWeapon} from "@/funcs/bungie";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
-import ErrorDiv from "@/components/ErrorDiv.vue";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import ErrorDiv from "@/components/Misc/ErrorDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 import {type Ref, ref, watch} from "vue";
 import {useRoute} from "vue-router";
 import type {DestinyDefinition, DestinyHistoricalWeaponStats} from "bungie-api-ts/destiny2";

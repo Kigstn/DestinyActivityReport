@@ -25,8 +25,9 @@ import {
   useSortingStore
 } from "@/funcs/store";
 import UserSummary from "@/components/UserView/UserSummary/UserSummary.vue";
-import LoadingDiv from "@/components/LoadingDiv.vue";
-import ErrorDiv from "@/components/ErrorDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
+import ErrorDiv from "@/components/Misc/ErrorDiv.vue";
+import Tooltip from "@/components/UserView/Tooltip.vue";
 
 type ActivityType = [string, ManifestActivity]
 
@@ -72,8 +73,7 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 }
 
 // --------------------------------------------
-// todo fix scrollbars looking ugly on edge
-// todo fix edge having a scroll bar for the base layout
+// todo mass unpin is wonky
 // todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
 // load data on page change
 watch(() => route.params, fetchData, {immediate: true})
@@ -512,6 +512,46 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
                 resetActivitiesOnFilterChange()
               }"
           />
+
+          <!-- Filter by: Total Clears -->
+          <BetweenValue
+              :loading="loading"
+              name="Minimum Total Clears"
+              :min="0"
+              :max="Infinity"
+              :content="filterStore.activityMinTotalClearsFilter"
+              @filterChange="(n: number) => {
+                filterStore.activityMinTotalClearsFilter = n
+                resetActivitiesOnFilterChange()
+              }"
+          />
+
+          <!-- Filter by: Clears -->
+          <BetweenValue
+              :loading="loading"
+              name="Minimum Clears"
+              :min="0"
+              :max="Infinity"
+              :content="filterStore.activityMinClearsFilter"
+              @filterChange="(n: number) => {
+                filterStore.activityMinClearsFilter = n
+                resetActivitiesOnFilterChange()
+              }"
+          />
+
+          <!-- Filter by: Special Clears -->
+          <BetweenValue
+              :loading="loading"
+              name="Minimum Special Clears"
+              :min="0"
+              :max="Infinity"
+              :content="filterStore.activityMinSpecialClearsFilter"
+              @filterChange="(n: number) => {
+                filterStore.activityMinSpecialClearsFilter = n
+                resetActivitiesOnFilterChange()
+              }"
+          />
+
         </SidebarSection>
 
         <SidebarSection name="<OR> Filters">
@@ -546,15 +586,24 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
         </SidebarSection>
 
         <!-- Reset Filters -->
+        <Tooltip>
+          <template v-slot:hoverable>
+            <button
+                class="flex items-center justify-center absolute w-6 h-6 clickable top-1 right-8 3xl:top-0 3xl:right-0"
+                @click="resetFilters()"
+            >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M4.85355 2.14645C5.04882 2.34171 5.04882 2.65829 4.85355 2.85355L3.70711 4H9C11.4853 4 13.5 6.01472 13.5 8.5C13.5 10.9853 11.4853 13 9 13H5C4.72386 13 4.5 12.7761 4.5 12.5C4.5 12.2239 4.72386 12 5 12H9C10.933 12 12.5 10.433 12.5 8.5C12.5 6.567 10.933 5 9 5H3.70711L4.85355 6.14645C5.04882 6.34171 5.04882 6.65829 4.85355 6.85355C4.65829 7.04882 4.34171 7.04882 4.14645 6.85355L2.14645 4.85355C1.95118 4.65829 1.95118 4.34171 2.14645 4.14645L4.14645 2.14645C4.34171 1.95118 4.65829 1.95118 4.85355 2.14645Z"
+                    fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </template>
 
-        <div class="flex justify-center">
-          <button
-              class="clickable mt-4 p-2 shrink !text-text_bright"
-              @click="resetFilters()"
-          >
-            Reset
-          </button>
-        </div>
+          <template v-slot:content>
+            Reset Filter
+          </template>
+        </Tooltip>
       </Sidebar>
 
       <div class="flex flex-col max-w-[1600px] grow">
@@ -683,14 +732,25 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
           </RadioGroupRoot>
         </SidebarSection>
 
-        <div class="flex justify-center">
-          <button
-              class="clickable mt-4 p-2 shrink !text-text_bright"
-              @click="resetSorting()"
-          >
-            Reset
-          </button>
-        </div>
+        <!-- Reset Sorting -->
+        <Tooltip>
+          <template v-slot:hoverable>
+            <button
+                class="flex items-center justify-center absolute w-6 h-6 clickable top-1 right-8 3xl:top-0 3xl:left-0"
+                @click="resetSorting()"
+            >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M4.85355 2.14645C5.04882 2.34171 5.04882 2.65829 4.85355 2.85355L3.70711 4H9C11.4853 4 13.5 6.01472 13.5 8.5C13.5 10.9853 11.4853 13 9 13H5C4.72386 13 4.5 12.7761 4.5 12.5C4.5 12.2239 4.72386 12 5 12H9C10.933 12 12.5 10.433 12.5 8.5C12.5 6.567 10.933 5 9 5H3.70711L4.85355 6.14645C5.04882 6.34171 5.04882 6.65829 4.85355 6.85355C4.65829 7.04882 4.34171 7.04882 4.14645 6.85355L2.14645 4.85355C1.95118 4.65829 1.95118 4.34171 2.14645 4.14645L4.14645 2.14645C4.34171 1.95118 4.65829 1.95118 4.85355 2.14645Z"
+                    fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </template>
+
+          <template v-slot:content>
+            Reset Sorting
+          </template>
+        </Tooltip>
       </Sidebar>
     </div>
   </div>

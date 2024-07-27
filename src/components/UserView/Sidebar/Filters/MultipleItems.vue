@@ -15,7 +15,7 @@ import {
 } from 'radix-vue'
 import {Icon} from '@iconify/vue'
 import {useMouseInElement} from "@vueuse/core";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 
 const props = defineProps<{
   placeholder: string,

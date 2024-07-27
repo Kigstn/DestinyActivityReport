@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {AccordionContent, AccordionHeader, AccordionItem, AccordionRoot, AccordionTrigger} from 'radix-vue'
-import FaqItem from "@/components/FaqItem.vue";
+import FaqItem from "@/components/Misc/FaqItem.vue";
 </script>
 
 <template>

@@ -8,7 +8,7 @@ import {
 import {Icon} from '@iconify/vue'
 import {ref, watch, watchEffect} from "vue";
 import {useDebouncedRef} from "@/funcs/utils";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 
 const props = defineProps<{
   name: string,

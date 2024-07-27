@@ -54,6 +54,9 @@ export const useFilterStore = defineStore('filter', () => {
     const activityTagsFilter: Ref<string[]> = ref([])
     const achievementTagsFilter: Ref<string[]> = ref([])
     const activityMaxPlayerCountFilter: Ref<number> = ref(destinyManifest.manifest.maxPlayers)
+    const activityMinTotalClearsFilter: Ref<number> = ref(0)
+    const activityMinClearsFilter: Ref<number> = ref(0)
+    const activityMinSpecialClearsFilter: Ref<number> = ref(0)
 
     function resetFilters() {
         activityNameFilter.value = ""
@@ -61,6 +64,9 @@ export const useFilterStore = defineStore('filter', () => {
         activityTagsFilter.value = []
         achievementTagsFilter.value = []
         activityMaxPlayerCountFilter.value = destinyManifest.manifest.maxPlayers
+        activityMinTotalClearsFilter.value = 0
+        activityMinClearsFilter.value = 0
+        activityMinSpecialClearsFilter.value = 0
     }
 
     return {
@@ -69,7 +75,10 @@ export const useFilterStore = defineStore('filter', () => {
         activityModeFilter,
         activityTagsFilter,
         achievementTagsFilter,
-        activityMaxPlayerCountFilter
+        activityMaxPlayerCountFilter,
+        activityMinTotalClearsFilter,
+        activityMinClearsFilter,
+        activityMinSpecialClearsFilter,
     }
 })
 export const useSortingStore = defineStore('sorting', () => {

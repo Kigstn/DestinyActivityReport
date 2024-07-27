@@ -3,11 +3,11 @@ import {RouterLink, RouterView, useRoute} from 'vue-router'
 import {version} from '../package.json'
 import {type Ref, ref} from "vue";
 import {useLocalStorage} from "@vueuse/core";
-import FavoriteProfile from "@/components/FavoriteProfile.vue";
+import FavoriteProfile from "@/components/Misc/FavoriteProfile.vue";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import type {PlayerProfile} from "@/funcs/bungie";
 import {useSharedData} from "@/funcs/store";
-import UserSearch from "@/components/UserSearch.vue";
+import UserSearch from "@/components/Misc/UserSearch.vue";
 
 const route = useRoute()
 
@@ -22,7 +22,7 @@ function addToFavorites() {
 
 <template>
   <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site">
-    <header class="w-screen bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-40">
+    <header class="w-full bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-40">
       <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-4 text-ellipsis">
         <!-- Home Button-->
         <RouterLink

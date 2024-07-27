@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type {PgcrTeammate} from "@/funcs/pgcrStats";
 import {getPlayerInfo, type PlayerProfile} from "@/funcs/bungie";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 import {type Ref, ref, watch} from "vue";
 import {useRoute} from "vue-router";
 import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";

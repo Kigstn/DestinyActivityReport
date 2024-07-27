@@ -11,7 +11,7 @@ import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 import {isFresh} from "@/funcs/pgcrStats";
 import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
 import {formatTime} from "@/funcs/utils";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
 import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
 import ActivityWeapon from "@/components/ActivityWeapon.vue";

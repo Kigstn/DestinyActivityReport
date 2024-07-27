@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Tag from "@/components/UserView/Tag.vue";
 import Clears from "@/components/UserView/Activities/Clears.vue";
-import LoadingDiv from "@/components/LoadingDiv.vue";
+import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 
 defineProps<{
   name: string,
