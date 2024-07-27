@@ -17,8 +17,12 @@
         @apply group-hover/clickable:underline group-hover/clickable:brightness-75 hover:underline hover:brightness-75 focus:brightness-75;
     }
 
+    .text-clickable-style {
+        @apply text-text_normal font-bold;
+    }
+
     .clickable {
-        @apply text-clickable text-text_normal bg-accent font-bold rounded-lg border-text_bright data-[state=on]:border-2 data-[state=active]:border-2 data-[state=open]:border-2 data-[active=true]:border-2;
+        @apply text-clickable text-clickable-style bg-accent rounded-lg border-text_bright data-[state=on]:border-2 data-[state=active]:border-2 data-[state=open]:border-2 data-[active=true]:border-2;
     }
 
     .tooltip {

@@ -23,7 +23,7 @@ function filterChange () {
     <LoadingDiv />
   </div>
 
-  <div v-else class="clickable min-h-14 flex flex-col justify-between">
+  <div v-else class="clickable min-h-14 flex flex-col justify-between hover:no-underline">
     <div class="text-xs text-text_normal p-1">
       {{ name }}
     </div>

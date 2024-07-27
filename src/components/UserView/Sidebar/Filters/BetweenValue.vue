@@ -36,7 +36,7 @@ function filterChange() {
 
   <NumberFieldRoot
       v-else
-      class="text-sm clickable h-14 flex flex-col justify-between"
+      class="text-sm clickable h-14 flex flex-col justify-between hover:no-underline"
       :min="min"
       :max="max"
       v-model="content"

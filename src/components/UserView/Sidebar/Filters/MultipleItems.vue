@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onMounted, type Ref, ref, watch} from 'vue'
+import {onMounted, type Ref, ref, toRef, toRefs, watch} from 'vue'
 import {
   ComboboxAnchor,
   ComboboxContent,
@@ -26,13 +26,22 @@ const props = defineProps<{
 const emit = defineEmits(["filterChange"])
 
 const searchTerm = ref("")
+const _content = toRef(props, "content")
+const content: Ref<string[]> = ref(props.content)
+
+watch(_content,
+    (value) => {
+      content.value = _content.value
+    },
+    {deep: true}
+)
 
 watch(
-    props.content,
+    content,
     () => {
       searchTerm.value = ""
       console.log("Emitted Filter Change")
-      emit("filterChange")
+      emit("filterChange", content.value)
     },
     {deep: true}
 )
@@ -59,14 +68,15 @@ onMounted(() => {
 
   <ComboboxRoot
       v-else
-      class="relative"
-      v-model="props.content"
+      class="relative group/clickable"
+      v-model="content"
       v-model:search-term="searchTerm"
       v-model:open="open"
       multiple
       ref="viewport"
   >
-    <div class="absolute top-1 left-1 text-xs text-text_normal">
+    <div
+        class="absolute top-1 left-1 text-xs !text-text_normal z-10 text-clickable text-clickable-style group-hover/clickable:no-underline">
       {{ placeholder }}
     </div>
 
@@ -75,7 +85,7 @@ onMounted(() => {
     >
       <TagsInputRoot
           v-slot="{ modelValue: tags }"
-          :model-value="props.content"
+          :model-value="content"
           delimiter=""
           class="flex gap-2 items-center flex-wrap text-sm"
       >
@@ -107,7 +117,7 @@ onMounted(() => {
     </ComboboxAnchor>
 
     <ComboboxContent
-        class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+        class="bg-accent text-text_normal absolute z-20 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
     >
       <ComboboxViewport class="p-[5px]">
         <ComboboxEmpty class="text-text_dull text-xs text-center p-1"/>

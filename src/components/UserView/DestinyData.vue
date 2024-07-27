@@ -372,6 +372,21 @@ function resetActivitiesOnFilterChange() {
       continue
     }
 
+    // activity min total clears
+    if ((activityData.clears + activityData.specialClears) < filterStore.activityMinTotalClearsFilter) {
+      continue
+    }
+
+    // activity min clears
+    if ((activityData.clears) < filterStore.activityMinTotalClearsFilter) {
+      continue
+    }
+
+    // activity min special clears
+    if ((activityData.specialClears) < filterStore.activityMinTotalClearsFilter) {
+      continue
+    }
+
     // @ts-ignore
     filteredData.push(entry)
     filteredActivityData[data.name] = activityData
@@ -561,7 +576,10 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
               placeholder="Activity Mode"
               :options="destinyManifest.manifest.modes"
               :content="filterStore.activityModeFilter"
-              @filterChange="resetActivitiesOnFilterChange()"
+              @filterChange="(n: string[]) => {
+                filterStore.activityModeFilter = n
+                resetActivitiesOnFilterChange()
+              }"
           />
         </SidebarSection>
 
@@ -570,9 +588,12 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
           <MultipleItems
               :loading="loading"
               placeholder="Achievement Tags"
-              :options="Object.keys(specialTags)"
+              :options="Object.values(specialTags).flat()"
               :content="filterStore.achievementTagsFilter"
-              @filterChange="resetActivitiesOnFilterChange()"
+              @filterChange="(n: string[]) => {
+                filterStore.achievementTagsFilter = n
+                resetActivitiesOnFilterChange()
+              }"
           />
 
           <!-- Filter by: Tags -->
@@ -581,7 +602,10 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
               placeholder="Activity Tags"
               :options="destinyManifest.manifest.tags"
               :content="filterStore.activityTagsFilter"
-              @filterChange="resetActivitiesOnFilterChange()"
+              @filterChange="(n: string[]) => {
+                filterStore.activityTagsFilter = n
+                resetActivitiesOnFilterChange()
+              }"
           />
         </SidebarSection>
 

@@ -41,7 +41,7 @@ watch(
 
   <SelectRoot v-else v-model="content">
     <SelectTrigger
-        class="text-sm clickable h-14 flex flex-col justify-between focus-visible:outline-none"
+        class="text-sm clickable h-14 flex flex-col justify-between focus-visible:outline-none hover:no-underline"
         aria-label="Customise options"
     >
       <div class="text-xs text-text_normal p-1  text-left">
