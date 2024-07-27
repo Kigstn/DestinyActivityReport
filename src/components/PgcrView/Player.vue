@@ -8,13 +8,14 @@ import {getPlayerInfo, type PlayerProfile} from "@/funcs/bungie";
 import {CollapsibleContent, CollapsibleRoot, CollapsibleTrigger} from "radix-vue";
 import {Icon} from "@iconify/vue";
 import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
-import {isFresh} from "@/funcs/pgcrStats";
+import {isFresh, type PgcrWeapon} from "@/funcs/pgcrStats";
 import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
 import {formatTime} from "@/funcs/utils";
 import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
 import ActivityClassStat from "@/components/UserActivityView/ActivityClassStat.vue";
 import StatsContainer from "@/components/UserActivityView/StatsContainer.vue";
 import ActivityWeapon from "@/components/ActivityWeapon.vue";
+import type {DestinyHistoricalWeaponStats} from "bungie-api-ts/destiny2/interfaces";
 
 const props = defineProps<{
   period: Date,
@@ -50,6 +51,19 @@ async function fetchData(newRoute: any) {
   completed.value = props.data.values.completed.basic.value == 1 && props.data.values.completionReason.basic.value == 0
 
   loading.value = false
+}
+
+function sortWeapons(weapons: DestinyHistoricalWeaponStats[]) {
+  return weapons.sort((a: DestinyHistoricalWeaponStats, b: DestinyHistoricalWeaponStats) => {
+        if (a.values.uniqueWeaponKills.basic.value < b.values.uniqueWeaponKills.basic.value) {
+          return 1
+        } else if (a.values.uniqueWeaponKills.basic.value == b.values.uniqueWeaponKills.basic.value) {
+          return 0
+        } else {
+          return -1
+        }
+      }
+  )
 }
 </script>
 
@@ -144,7 +158,7 @@ async function fetchData(newRoute: any) {
               <div
                   class="w-full col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 place-items-center gap-4"
               >
-                <ActivityWeapon v-for="weapon in data.extended.weapons" :pgcr-data="weapon" bg="bg-bg_box"/>
+                <ActivityWeapon v-for="weapon in sortWeapons(data.extended.weapons)" :pgcr-data="weapon" bg="bg-bg_box"/>
               </div>
             </StatsContainer>
         </div>

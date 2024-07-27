@@ -124,32 +124,6 @@ async function fetchData(newRoute: any) {
     dataLoading.value = false
   }
 }
-
-function sortWeapons(weapons: PgcrWeapon[]) {
-  return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
-        if (a.kills.total < b.kills.total) {
-          return 1
-        } else if (a.kills.total == b.kills.total) {
-          return 0
-        } else {
-          return -1
-        }
-      }
-  )
-}
-
-function sortTeammates(teammates: PgcrTeammate[]) {
-  return teammates.sort((a: PgcrTeammate, b: PgcrTeammate) => {
-        if (a.totalTime < b.totalTime) {
-          return 1
-        } else if (a.totalTime == b.totalTime) {
-          return 0
-        } else {
-          return -1
-        }
-      }
-  )
-}
 // todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
 // todo special conditions for data that is wrong in the bungie API
 </script>

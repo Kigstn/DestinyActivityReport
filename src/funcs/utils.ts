@@ -1,4 +1,6 @@
 import {customRef} from "vue";
+import type {PgcrWeapon} from "@/funcs/pgcrStats";
+import type {DestinyHistoricalWeaponStats} from "bungie-api-ts/destiny2";
 
 export function formatTime(x: number | null) {
     if (x == 0 || x == null || x === Infinity) {
