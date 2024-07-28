@@ -111,7 +111,7 @@ async function fetchData(newRoute: any) {
 // todo custom scroll bar
 // todo weapons / teammates need pages :D -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo wenn ich über stats hovere, steht da undefined -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
-// weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo chartjs hat so ne eigne achse mit einheiten - why? Löschen
 // todo make sure this doiesnt say personal flawless anymore
 function sortWeapons(weapons: PgcrWeapon[]) {
@@ -140,7 +140,6 @@ function sortTeammates(teammates: PgcrTeammate[]) {
   )
 }
 
-// todo this doesnt show up --> https://activities.report/pgcr/5726788293
 // todo this is obv wrong too -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal
 // todo I'm sure exiled doesnt have 15k forge clears lol -> https://activities.report/3/4611686018468433098
 // todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
