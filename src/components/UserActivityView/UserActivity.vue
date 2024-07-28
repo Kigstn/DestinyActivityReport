@@ -96,7 +96,9 @@ async function fetchData(newRoute: any) {
     pgcrStats.value = calcStats(pgcrs.value, membershipId)
     sortedWeapons.value = sortWeapons(Object.values(pgcrStats.value.weaponStats))
     sortedTeammates.value = sortTeammates(Object.values(pgcrStats.value.teammates))
+
   } catch (err: any) {
+    console.log(err)
     error.value = err.message
     throw err
   } finally {
@@ -106,6 +108,11 @@ async function fetchData(newRoute: any) {
   }
 }
 
+// todo custom scroll bar
+// todo weapons / teammates need pages :D -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// todo wenn ich über stats hovere, steht da undefined -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// todo chartjs hat so ne eigne achse mit einheiten - why? Löschen
 // todo make sure this doiesnt say personal flawless anymore
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
@@ -132,11 +139,11 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       }
   )
 }
+
 // todo this doesnt show up --> https://activities.report/pgcr/5726788293
 // todo this is obv wrong too -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal
 // todo I'm sure exiled doesnt have 15k forge clears lol -> https://activities.report/3/4611686018468433098
 // todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
-// todo completion % iwo
 </script>
 
 <template>
@@ -163,7 +170,8 @@ function sortTeammates(teammates: PgcrTeammate[]) {
           </div>
 
           <!-- Activity Name -->
-          <div class="text-text_bright text-center font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
+          <div
+              class="text-text_bright text-center font-extrabold text-2xl sm:text-3xl md:text-5xl text-shadow shadow-bg_box">
             {{ manifestActivity.name }}
           </div>
 
@@ -198,12 +206,20 @@ function sortTeammates(teammates: PgcrTeammate[]) {
           </div>
         </div>
 
-        <!-- Playtime -->
         <div class="absolute bottom-2 left-2">
-          <div v-if="dataLoading" class="w-16 h-12">
-            <LoadingDiv class="!bg-bg_site"/>
+          <div class="flex gap-4">
+            <!-- Playtime -->
+            <div v-if="dataLoading" class="w-16 h-12">
+              <LoadingDiv class="!bg-bg_site"/>
+            </div>
+            <ActivityClassStat v-else name="Playtime" :amount="pgcrStats.totalTime" time/>
+
+            <!-- Completion % -->
+            <div v-if="dataLoading" class="w-16 h-12">
+              <LoadingDiv class="!bg-bg_site"/>
+            </div>
+            <ActivityClassStat v-else name="Successful Clears" :amount="pgcrStats.percentageClears" percent show-null/>
           </div>
-          <ActivityClassStat v-else name="Playtime" :amount="pgcrStats.totalTime" time/>
         </div>
       </div>
 

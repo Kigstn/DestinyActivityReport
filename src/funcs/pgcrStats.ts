@@ -64,6 +64,7 @@ export interface PgcrStats {
     bestMeleeKills: PgcrClass,
     bestSuperKills: PgcrClass,
     bestAbilityKills: PgcrClass,
+    percentageClears: PgcrClass,
 
     weaponStats: { [referenceId: string]: PgcrWeapon },
 
@@ -293,6 +294,14 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             }
         },
         bestAbilityKills: {
+            total: 0,
+            byClass: {
+                "Warlock": 0,
+                "Hunter": 0,
+                "Titan": 0,
+            }
+        },
+        percentageClears: {
             total: 0,
             byClass: {
                 "Warlock": 0,
@@ -697,9 +706,9 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         }
     }
 
-    _addPercentStat(stats, "kd", ["kills"], "deaths")
-    _addPercentStat(stats, "kda", ["kills", "assists"], "deaths")
-    _addPercentStat(stats, "precisionKillsPercent", ["precisionKills"], "kills")
+    _addPercentStat(stats, "kd", ["kills"], ["deaths"])
+    _addPercentStat(stats, "kda", ["kills", "assists"], ["deaths"])
+    _addPercentStat(stats, "precisionKillsPercent", ["precisionKills"], ["kills"])
 
     for (const [hash, weapon] of Object.entries(stats.weaponStats)) {
         let r = 0
@@ -738,6 +747,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
     _calcAvgTime(stats, "specialFullClears")
     _calcAvgTime(stats, "cpClears")
     _calcAvgTime(stats, "failedClears")
+    _addPercentStat(stats, "percentageClears", ["combinedClears.amount"], ["combinedClears.amount", "failedClears.amount"])
 
     // sort the pgcrs
     stats.data = stats.data.sort((a: PlayedActivities, b: PlayedActivities) => {
@@ -790,27 +800,55 @@ function _addBestStat(stats: PgcrStats, character: string, instanceId: string, k
     }
 }
 
-function _addPercentStat(stats: PgcrStats, key: string, toDivide: string[], divideBy: string) {
+function _getDeepStat(stats: PgcrStats, key: string): PgcrClass {
+    let statDivideBy = stats
+    for (const part of key.split(".")) {
+        statDivideBy = statDivideBy[part]
+    }
+    return statDivideBy
+
+}
+
+function _addPercentStat(stats: PgcrStats, key: string, toDivide: string[], divideBy: string[]) {
     let r = 0
     let v = 0
-    let d = stats[divideBy].total
+    let d = 0
+
+    for (const k of divideBy) {
+        const statDivideBy = _getDeepStat(stats, k)
+        d += statDivideBy.total
+    }
+
+    console.log("--------------")
+    console.log(d)
 
     if (d !== 0) {
         for (const k of toDivide) {
-            v += stats[k].total
+            const statToDivide = _getDeepStat(stats, k)
+            v += statToDivide.total
+            console.log(v)
+
         }
         r = v / d
+        console.log(r)
+
     }
     stats[key].total = r
 
-    for (const character of Object.keys(stats[divideBy].byClass)) {
+    for (const character of Object.keys(_getDeepStat(stats, divideBy[0]).byClass)) {
         r = 0
         v = 0
-        d = stats[divideBy].byClass[character]
+        d = 0
+
+        for (const k of divideBy) {
+            const statDivideBy = _getDeepStat(stats, k)
+            d += statDivideBy.byClass[character]
+        }
 
         if (d !== 0) {
             for (const k of toDivide) {
-                v += stats[k].byClass[character]
+                const statToDivide = _getDeepStat(stats, k)
+                v += statToDivide.byClass[character]
             }
             r = v / d
         }
