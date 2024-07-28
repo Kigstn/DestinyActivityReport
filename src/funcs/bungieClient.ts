@@ -1,4 +1,5 @@
 import {type HttpClient, type HttpClientConfig, PlatformErrorCodes, type ServerResponse} from "bungie-api-ts/destiny2";
+import Semaphore from "semaphore-async-await";
 
 
 // copied from https://github.com/DestinyItemManager/DIM -> thanks a ton!
@@ -110,6 +111,8 @@ function createFetchWithNonStoppingTimeout(
     };
 }
 
+const lock = new Semaphore(50)
+
 // copied from https://github.com/DestinyItemManager/DIM -> thanks a ton!
 function createHttpClient(fetchFunction: typeof fetch, apiKey: string): HttpClient {
     return async <T>(config: HttpClientConfig) => {
@@ -128,7 +131,11 @@ function createHttpClient(fetchFunction: typeof fetch, apiKey: string): HttpClie
             credentials: 'omit',
         });
 
+        // make sure to not call everything at once
+        await lock.acquire()
         const response = await fetchFunction(fetchOptions);
+        lock.release()
+
         let data: T | undefined;
         let parseError: Error | undefined;
         try {
