@@ -7,7 +7,10 @@ import {
   searchBungieUser
 } from "@/funcs/bungie";
 import {type Ref, ref} from "vue";
-import {RouterLink} from "vue-router";
+import {RouterLink, useRouter} from "vue-router";
+
+const router = useRouter()
+
 
 const userSearch = useDebouncedRef("", searchUser)
 const userSearchResults: Ref<BungieUserSearchResult[]> = ref([])
@@ -22,13 +25,23 @@ function searchUser() {
 
   const promise = searchBungieUser(userSearch.value)
   promise.then((data) => {
+    if (data.length == 1) {
+      // only one result -> redirect
+      const redirectUrl = `/${data[0].mainMembershipType}/${data[0].mainMembershipId}`
+      focus.value = false
+      router.push(redirectUrl)
+    }
+
     userSearchResults.value = data
   })
 }
 
 function unFocus() {
-  setTimeout(function() { focus.value = false }, 100)
+  setTimeout(function () {
+    focus.value = false
+  }, 100)
 }
+
 // todo better endpoint - need to be able to search with tag: exiled#5500
 </script>
 
@@ -68,24 +81,24 @@ function unFocus() {
           :to="`/${convertMembershipTypeToStr(user.mainMembershipType)}/${user.mainMembershipId}`"
       >
         <p>
-          {{ user.bungieGlobalDisplayName }}<span class="text-text_dull">#{{ user.bungieGlobalDisplayNameCode.toString().padStart(4, '0') }}</span>
+          {{ user.bungieGlobalDisplayName }}<span class="text-text_dull">#{{ user.bungieGlobalDisplayNameCode }}</span>
         </p>
 
         <div class="flex flex-row-reverse items-center gap-1">
-          <div v-for="platform in user.destinyMemberships">
+          <div v-for="platform in user.allMembershipTypes">
             <div
-                v-if="platform.membershipType == user.mainMembershipType"
+                v-if="platform == user.mainMembershipType"
                 class="border-2 border-text_bright rounded-xl"
             >
               <img
-                  :src="getPlatformIcon(convertMembershipTypeToStr(platform.membershipType))"
+                  :src="getPlatformIcon(convertMembershipTypeToStr(platform))"
                   alt="Platform"
                   class="h-5 w-5"
               />
             </div>
             <div v-else>
               <img
-                  :src="getPlatformIcon(convertMembershipTypeToStr(platform.membershipType))"
+                  :src="getPlatformIcon(convertMembershipTypeToStr(platform))"
                   alt="Platform"
                   class="h-3 w-3"
               />

@@ -134,7 +134,8 @@ function sortTeammates(teammates: PgcrTeammate[]) {
 }
 // todo this doesnt show up --> https://activities.report/pgcr/5726788293
 // todo this is obv wrong too -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal
-// todo filter activities where you changed characters
+// todo I'm sure exiled doesnt have 15k forge clears lol -> https://activities.report/3/4611686018468433098
+// todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
 // todo completion % iwo
 </script>
 
@@ -207,7 +208,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       </div>
 
       <div v-if="dataLoading" class="p-4 w-full h-40">
-        <LoadingDiv text="Requesting data from bungie, this can take a while..." class="!bg-bg_site"/>
+        <LoadingDiv text="Requesting in-depth data from bungie, this can take a while..." class="!bg-bg_site"/>
       </div>
       <div v-else>
         <!-- Special Tags -->

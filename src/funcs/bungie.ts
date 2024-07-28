@@ -1,14 +1,20 @@
 import {
-    DestinyComponentType, type DestinyDefinition,
+    DestinyComponentType,
+    type DestinyDefinition,
     type DestinyHistoricalStatsPeriodGroup,
-    type DestinyManifest, type DestinyPostGameCarnageReportData,
-    getActivityHistory, getDestinyEntityDefinition,
+    type DestinyManifest,
+    type DestinyPostGameCarnageReportData,
+    getActivityHistory,
+    getDestinyEntityDefinition,
     getDestinyManifestSlice,
-    getHistoricalStatsForAccount, getPostGameCarnageReport, getProfile
+    getHistoricalStatsForAccount,
+    getPostGameCarnageReport,
+    getProfile,
+    searchDestinyPlayerByBungieName,
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
-import {searchByGlobalNamePost, type UserSearchResponseDetail} from "bungie-api-ts/user";
+import {searchByGlobalNamePost, type UserInfoCard, type UserSearchResponseDetail} from "bungie-api-ts/user";
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
 import {LRUCache} from "lru-cache";
 
@@ -588,48 +594,105 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
     }
 }
 
-export interface BungieUserSearchResult extends UserSearchResponseDetail {
+export interface BungieUserSearchResult {
     mainMembershipType: number
     mainMembershipId: string
+    bungieGlobalDisplayName: string
+    bungieGlobalDisplayNameCode: string
+    allMembershipTypes: number[]
 }
 
+async function _searchDirectDestinyPlayer(name: string, code: number) {
+    const data = await searchDestinyPlayerByBungieName(bungieClient, {
+        membershipType: -1 // all
+    }, {
+        displayName: name,
+        displayNameCode: code
+    })
+
+    return _parseUserMembershipsSearchResults(data.Response)
+}
+
+const userRegex = new RegExp("#\\d{4}$")
+
 export async function searchBungieUser(query: string, page: number = 0) {
+    // can we search directly?
+    if (page == 0) {
+        if (userRegex.test(query)) {
+            // found match, so call different function
+            try {
+                const parts = query.split("#")
+                const name = parts.slice(0, -1).join("#")
+                const code = parseInt(parts.slice(-1)[0])
+                const res = await _searchDirectDestinyPlayer(name, code)
+
+                if (res != null) {
+                    return [res]
+                }
+            } catch (e) {
+                // run as normally, we don't want to break anything
+            }
+        }
+    }
+
+
     const data = await searchByGlobalNamePost(bungieClient, {
         page: 0
     }, {
         displayNamePrefix: query
     })
 
+    const res = _parseUserSearchResults(data.Response.searchResults)
     if (data.Response.hasMore) {
         if (page < 1) {
-            data.Response.searchResults.push(...await searchBungieUser(query, page + 1))
+            res.push(...await searchBungieUser(query, page + 1))
         }
     }
 
+    return res
+}
+
+function _parseUserSearchResults(data: UserSearchResponseDetail[]) {
     const res = []
-    for (const r of data.Response.searchResults) {
-        if (r.destinyMemberships.length == 0) {
-            continue
+    for (const r of data) {
+        const result = _parseUserMembershipsSearchResults(r.destinyMemberships)
+
+        if (result != null) {
+            res.push(result)
         }
-
-        let mainMembershipType = r.destinyMemberships[0].membershipType
-        let mainMembershipId = r.destinyMemberships[0].membershipId
-
-        for (const m of r.destinyMemberships) {
-            if (m.crossSaveOverride == m.membershipType) {
-                mainMembershipType = m.membershipType
-                mainMembershipId = m.membershipId
-                break
-            }
-        }
-
-        res.push({
-            mainMembershipType: mainMembershipType,
-            mainMembershipId: mainMembershipId,
-            ...r
-        })
     }
     return res
+}
+
+function _parseUserMembershipsSearchResults(data: UserInfoCard[]): null | BungieUserSearchResult {
+    if (data.length == 0) {
+        return null
+    }
+
+    let mainMembershipType = data[0].membershipType
+    let mainMembershipId = data[0].membershipId
+    let mainBungieGlobalDisplayName = data[0].bungieGlobalDisplayName
+    let mainBungieGlobalDisplayCode = data[0].bungieGlobalDisplayNameCode
+    const allMembershipTypes = []
+
+    for (const m of data) {
+        allMembershipTypes.push(m.membershipType)
+        if (m.crossSaveOverride == m.membershipType) {
+            mainMembershipType = m.membershipType
+            mainMembershipId = m.membershipId
+            mainBungieGlobalDisplayName = m.bungieGlobalDisplayName
+            mainBungieGlobalDisplayCode = m.bungieGlobalDisplayNameCode
+            break
+        }
+    }
+
+    return {
+        mainMembershipType: mainMembershipType,
+        mainMembershipId: mainMembershipId,
+        bungieGlobalDisplayName: mainBungieGlobalDisplayName,
+        bungieGlobalDisplayNameCode: mainBungieGlobalDisplayCode.toString().padStart(4, '0'),
+        allMembershipTypes: allMembershipTypes,
+    }
 }
 
 export async function getSinglePgcr(hash: string) {
