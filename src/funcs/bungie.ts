@@ -529,8 +529,16 @@ export interface PlayerProfile {
     totalMinutesPlayed: number
 }
 
+const playerCache = new LRUCache({max: 1000})
+
 export async function getPlayerInfo(destinyMembershipId: any, membershipType: any): Promise<PlayerProfile> {
     membershipType = convertMembershipType(membershipType)
+
+    const cacheQuery = [destinyMembershipId, membershipType].toString()
+    const cacheItem = playerCache.get(cacheQuery)
+    if (cacheItem != undefined) {
+        return cacheItem
+    }
 
     const profileData = await getProfile(bungieClient, {
         components: [100, 200],
@@ -580,7 +588,7 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
         totalMinutesPlayed += parseInt(data.minutesPlayedTotal)
     }
 
-    return {
+    const res = {
         membershipType: membershipType,
         membershipTypes: membershipTypes,
         membershipId: profileData.Response.profile.data?.userInfo.membershipId,
@@ -592,6 +600,8 @@ export async function getPlayerInfo(destinyMembershipId: any, membershipType: an
         light: light,
         totalMinutesPlayed: totalMinutesPlayed
     }
+    playerCache.set(cacheQuery, res)
+    return res
 }
 
 export interface BungieUserSearchResult {
