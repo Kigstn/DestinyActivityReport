@@ -10,7 +10,7 @@
             topic_bar (12), topic_bar_margin (4)
          */
         height: calc(100% - 3rem - 1rem);
-        @apply w-full grow-0 overflow-y-auto
+        @apply w-full grow-0 overflow-y-auto scrollbar
     }
 
     .text-clickable {

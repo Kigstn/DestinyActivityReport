@@ -56,7 +56,7 @@ watch(
 
     <SelectPortal>
       <SelectContent
-          class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
+          class="bg-accent text-text_normal absolute z-10 w-full mt-2 min-w-[160px] max-h-80 scrollbar overflow-y-scroll rounded-lg will-change-[opacity,transform] data-[side=top]:animate-slideDownAndFade data-[side=right]:animate-slideLeftAndFade data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade"
       >
         <SelectViewport class="p-[5px]">
           <!-- Render Arrays-->

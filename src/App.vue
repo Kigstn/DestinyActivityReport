@@ -21,7 +21,7 @@ function addToFavorites() {
 </script>
 
 <template>
-  <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site">
+  <div class="h-dvh flex flex-col bg-gradient-to-b from-bg_site_light to-bg_site scrollbar-thumb-accent scrollbar-track-bg_box">
     <header class="w-full bg-gradient-to-r from-text_bright to-text_bright_duller flex justify-center z-40">
       <div class="grow h-16 max-w-[2000px] flex justify-between px-6 items-center gap-4 text-ellipsis">
         <!-- Home Button-->

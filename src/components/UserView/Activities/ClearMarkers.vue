@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col justify-center h-full">
     <div class="grid grid-cols-4">
-      <div class="col-span-3 pr-2 self-center overflow-x-auto h-20">
+      <div class="col-span-3 pr-2 self-center scrollbar overflow-x-auto h-20">
         <div class="h-20">
           <Scatter
               id="my-chart-id"

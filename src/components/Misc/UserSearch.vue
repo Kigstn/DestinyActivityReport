@@ -66,7 +66,7 @@ function unFocus() {
 
     <div
         v-if="focus && userSearch != ''"
-        class="absolute w-full min-w-72 right-0 flex flex-col overflow-y-scroll mt-2 max-h-[600px] bg-accent text-text_normal font-bold text-lg z-10 rounded-lg p-[5px]"
+        class="absolute w-full min-w-72 right-0 flex flex-col scrollbar overflow-y-scroll mt-2 max-h-[600px] bg-accent text-text_normal font-bold text-lg z-10 rounded-lg p-[5px]"
     >
       <div v-if="userSearchResults.length == 0" class="font-medium italic text-sm py-2">
         Nothing found :(

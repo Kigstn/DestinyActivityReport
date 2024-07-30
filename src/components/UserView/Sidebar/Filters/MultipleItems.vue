@@ -120,7 +120,7 @@ onMounted(() => {
         <ComboboxEmpty class="text-text_dull text-xs text-center p-1"/>
 
         <!-- Render Arrays-->
-        <ComboboxGroup v-if="Array.isArray(options)" class="max-h-80 overflow-y-scroll">
+        <ComboboxGroup v-if="Array.isArray(options)" class="max-h-80 scrollbar overflow-y-scroll">
           <ComboboxItem
               v-for="(option, index) in options"
               class="text-sm leading-none rounded-lg flex items-center min-h-6 px-6 py-1 relative select-none data-[highlighted]:outline-none data-[highlighted]:bg-text_bright data-[highlighted]:text-bg_site"

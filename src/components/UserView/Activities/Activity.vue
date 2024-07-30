@@ -129,7 +129,7 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
       </div>
 
       <!-- Tags -->
-      <div class="h-12 flex space-x-1 py-1 px-2 overflow-x-auto overflow-y-hidden">
+      <div class="h-12 flex space-x-1 py-1 px-2 scrollbar overflow-x-auto overflow-y-hidden scrollbar">
         <div v-for="(data, name) in activities.specialTags">
           <RouterLink :to="`/pgcr/${data.instanceId}`">
             <BoxClickable>
