@@ -141,7 +141,7 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
 
       <div class="flex flex-col divide-y px-4 pb-2 divide-text_dull/70">
         <div class="pb-4 flex flex-col">
-          <div class="h-24 row-span-2">
+          <div class="h-24 row-span-2 pl-2">
             <!-- Clear Markers -->
             <ClearMarkers :activities="activities" v-if="activities.data.length > 0"/>
             <div v-else class="justify-center font-medium italic text-sm text-text_dull flex h-full">

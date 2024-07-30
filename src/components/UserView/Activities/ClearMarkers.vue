@@ -200,7 +200,10 @@ export default {
             grid: {
               display: false,
             },
-            beginAtZero: true
+            beginAtZero: true,
+          },
+          y: {
+            display: false,
           },
         },
         onClick: (e) => {

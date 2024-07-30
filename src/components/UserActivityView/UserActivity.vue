@@ -111,8 +111,6 @@ async function fetchData(newRoute: any) {
 // todo weapons / teammates need pages :D -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo wenn ich über stats hovere, steht da undefined -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
-// todo chartjs hat so ne eigne achse mit einheiten - why? Löschen
-// todo make sure this doiesnt say personal flawless anymore
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
         if (a.kills.total < b.kills.total) {
