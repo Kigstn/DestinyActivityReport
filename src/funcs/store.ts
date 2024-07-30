@@ -7,6 +7,8 @@ import {bungieClient} from "@/funcs/bungieClient";
 import {getManifestActivities} from "@/funcs/bungie";
 
 
+
+
 export const useDestinyManifestStore = defineStore('destinyManifest', () => {
     // get the manifest data for the activities
     // make sure to check if the version changed - else do not re-download

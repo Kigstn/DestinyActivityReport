@@ -73,7 +73,6 @@ if (sharedDataStore.pinnedActivities.size > 0) {
 }
 
 // --------------------------------------------
-// todo mass unpin is wonky
 // load data on page change
 watch(() => route.params, fetchData, {immediate: true})
 

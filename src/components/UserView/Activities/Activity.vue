@@ -14,6 +14,7 @@ import {formatTime} from "@/funcs/utils";
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import {useLocalStorage} from "@vueuse/core";
 import {useRoute} from "vue-router";
+import {useSharedData} from "@/funcs/store";
 
 const props = defineProps<{
   manifestActivity: ManifestActivity,
@@ -22,9 +23,9 @@ const props = defineProps<{
 defineEmits(["filterChange"])
 
 const route = useRoute()
+const sharedDataStore = useSharedData()
 
-const pinnedActivities = useLocalStorage("pinnedActivities", new Set())
-const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
+const toggleState = ref(sharedDataStore.pinnedActivities.has(props.manifestActivity.name))
 </script>
 
 <template>
@@ -50,10 +51,10 @@ const toggleState = ref(pinnedActivities.value.has(props.manifestActivity.name))
                   class="clickable flex items-center justify-center w-8 h-8"
                   @click="() => {
                     if (toggleState) {
-                      pinnedActivities.add(manifestActivity.name)
+                      sharedDataStore.pinnedActivities.add(manifestActivity.name)
                     } else {
-                      pinnedActivities.delete(manifestActivity.name)
-                      $emit('filterChange', pinnedActivities)
+                      sharedDataStore.pinnedActivities.delete(manifestActivity.name)
+                      $emit('filterChange', sharedDataStore.pinnedActivities)
                     }
                   }"
               >
