@@ -303,7 +303,7 @@ function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
         // special clear?
         entry.specialTags = []
         if (completed) {
-            entry.specialTags = calcSpecials(entry.values.playerCount.basic.value, entry.values.deaths.basic.value, entry.activityDetails.mode)
+            entry.specialTags = calcSpecials(entry.values.playerCount.basic.value, entry.values.deaths.basic.value, entry.activityDetails.mode, new Date(entry.period), entry.lengthSeconds)
         }
 
         finalEntries.push(entry)
