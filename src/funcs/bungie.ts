@@ -9,7 +9,7 @@ import {
     getDestinyManifestSlice,
     getHistoricalStatsForAccount,
     getPostGameCarnageReport,
-    getProfile,
+    getProfile, PlatformErrorCodes,
     searchDestinyPlayerByBungieName,
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
@@ -17,6 +17,7 @@ import {counter} from "@/funcs/utils";
 import {searchByGlobalNamePost, type UserInfoCard, type UserSearchResponseDetail} from "bungie-api-ts/user";
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
 import {LRUCache} from "lru-cache";
+import {blacklistedTimes} from "@/data/blacklisted_timeframes";
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
@@ -152,8 +153,30 @@ export const specialTags = {
     ],
 }
 
-export function calcSpecials(playerCount: number, deaths: number, mode: number, pgcr: boolean = false, fresh: boolean = false) {
-    const specialTags = []
+export function calcSpecials(playerCount: number, deaths: number, mode: number, period: Date, duration_seconds: number, pgcr: boolean = false, fresh: boolean = false) {
+    const specialTags: string[] = []
+
+    // is this any special timeframe we need to keep in mind?
+    for (const entry of blacklistedTimes) {
+        if ((entry.time_start < period) && (period < entry.time_end)) {
+            // matches, now how do we exclude it
+            switch (entry.mode) {
+                case "full_exclude":
+                    return specialTags
+                case "make_everything_checkpoints":
+                    fresh = false
+                    break
+                default:
+                    console.log("Unknown mode: ", entry)
+                    throw Error
+            }
+        }
+    }
+
+    // if the duration is too low - no returning anything either
+    if (duration_seconds < 60 * 3) {
+        return specialTags
+    }
 
     if (playerCount == 1 && deaths == 0) {
         if (pgcr) {

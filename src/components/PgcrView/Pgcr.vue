@@ -90,7 +90,7 @@ async function fetchData(newRoute: any) {
     pgcrData.value.playerCount = players.size
     pgcrData.value.specialTags = []
     if (pgcrData.value.completed) {
-      pgcrData.value.specialTags = calcSpecials(pgcrData.value.playerCount, playerDeaths, pgcr.value.activityDetails.mode, true, pgcrData.value.fresh)
+      pgcrData.value.specialTags = calcSpecials(pgcrData.value.playerCount, playerDeaths, pgcr.value.activityDetails.mode, pgcrData.value.period, pgcrData.value.duration, true, pgcrData.value.fresh)
     }
     pgcrData.value.completionReason = "Failed Clear"
     if (pgcrData.value.specialTags.length > 0) {
@@ -124,8 +124,7 @@ async function fetchData(newRoute: any) {
     dataLoading.value = false
   }
 }
-// todo https://raid.report/pgcr/6999150196 -> shouldnot give a tag, as not completed
-// todo special conditions for data that is wrong in the bungie API
+// todo day one tags
 </script>
 
 <template>

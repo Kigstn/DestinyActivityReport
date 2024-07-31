@@ -61,17 +61,43 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
             If you want this feature, please pester Bungie to add a new endpoint to their API! :)
           </p>
         </FaqItem>
+        <FaqItem
+            question="Why does my clear does not have any special tags? I cleared it solo - but nothing shows up :(">
+          <p>
+            Did you maybe clear it in a timeframe that we do not give any tags for? <a class="hyperlink"
+                                                                                       href="https://github.com/Kigstn/DestinyActivityReport/tree/main/src/data/blacklisted_timeframes.ts">You
+            can view a full list of those dates here.</a>
+          </p>
+          <p>
+            Why did I do this? Well.. There are a bunch of times in destiny history where special tags were MUCH easier
+            to get. Think the busted weapon crafting period [<a class="hyperlink" href="/pgcr/13863578720">Example</a>].
+            Sometimes there are also timeframes where the API was broken and was awarding clears for stuff that
+            obviously was no clear [<a class="hyperlink" href="/pgcr/13863578720">Example</a>].
+          </p>
+          <p>
+            Why unfortunate for those affected, I feel like it makes it much fairer for those who achieved the tags the
+            hard way!
+          </p>
+          <p>
+            If you feel like a timeframe is missing, please let me know. 100% I forgot something :D
+          </p>
+          <p>
+            In addition, clears that are shorter than 2 minutes are excluded by default. Noone is that quick :)
+          </p>
+        </FaqItem>
         <FaqItem question="What information do you collect and save?">
           <p>
             Nothing!
           </p>
           <p>
-            A bunch of information is saved locally in your browser, but that's only to cache frequently requested information to make page loads quicker.
+            A bunch of information is saved locally in your browser, but that's only to cache frequently requested
+            information to make page loads quicker.
           </p>
         </FaqItem>
         <FaqItem question="Destiny just updated - when are you updating this side to include the new stuff?">
           <p>
-            Not necessary! Everything is dynamically looked up by bungie - if they don't change anything drastic, new activities should show up automatically.
+            Not necessary! Everything is dynamically looked up by bungie - if they don't change anything drastic, new
+            activities should show up automatically.
           </p>
         </FaqItem>
         <FaqItem question="What's your favorite activity">
