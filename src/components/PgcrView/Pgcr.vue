@@ -124,7 +124,6 @@ async function fetchData(newRoute: any) {
     dataLoading.value = false
   }
 }
-// todo day one tags
 </script>
 
 <template>
@@ -217,7 +216,7 @@ async function fetchData(newRoute: any) {
         </div>
 
         <div class="pt-4">
-          <StatsContainer name="Fireteam">
+          <StatsContainer name="Fireteam" no-scroll>
             <div class="col-span-full w-full flex flex-col gap-4">
               <Player
                   v-for="player in pgcr.entries"

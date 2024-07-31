@@ -108,7 +108,6 @@ async function fetchData(newRoute: any) {
   }
 }
 
-// todo weapons / teammates need pages :D -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo wenn ich über stats hovere, steht da undefined -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 // todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 function sortWeapons(weapons: PgcrWeapon[]) {

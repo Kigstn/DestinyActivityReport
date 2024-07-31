@@ -2,6 +2,7 @@
 defineProps<{
   name: string,
   classOverwrite?: string,
+  noScroll?: boolean
 }>()
 </script>
 
@@ -11,7 +12,7 @@ defineProps<{
       {{ name }}
     </p>
 
-    <div :class="`grid grid-cols-2 md:grid-cols-5 place-items-center gap-4 ${classOverwrite && classOverwrite}`">
+    <div :class="`${!noScroll && 'max-h-[464px] overflow-y-scroll scrollbar'} grid grid-cols-2 md:grid-cols-5 place-items-center gap-4 ${classOverwrite && classOverwrite}`">
       <slot/>
     </div>
   </div>
