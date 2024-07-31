@@ -17,7 +17,8 @@ import {counter} from "@/funcs/utils";
 import {searchByGlobalNamePost, type UserInfoCard, type UserSearchResponseDetail} from "bungie-api-ts/user";
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
 import {LRUCache} from "lru-cache";
-import {blacklistedTimes} from "@/data/blacklisted_timeframes";
+import {blacklistedTimes} from "@/data/blacklistedTimeframes";
+import {dayOneTimes} from "@/data/dayOneTimes";
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
@@ -212,6 +213,13 @@ export function calcSpecials(playerCount: number, deaths: number, mode: number, 
 
     // special behaviour for raids
     if (mode == 4) {
+        // day one tags
+        for (const entry of dayOneTimes["raids"]) {
+            if ((entry.time_start < period) && (period < entry.time_end)) {
+                specialTags.push("Day One")
+            }
+        }
+
         if (playerCount == 2) {
             if (deaths == 0) {
                 if (pgcr) {

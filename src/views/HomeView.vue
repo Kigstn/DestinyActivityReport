@@ -65,7 +65,7 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
             question="Why does my clear does not have any special tags? I cleared it solo - but nothing shows up :(">
           <p>
             Did you maybe clear it in a timeframe that we do not give any tags for? <a class="hyperlink"
-                                                                                       href="https://github.com/Kigstn/DestinyActivityReport/tree/main/src/data/blacklisted_timeframes.ts">You
+                                                                                       href="https://github.com/Kigstn/DestinyActivityReport/tree/main/src/data/blacklistedTimeframes.ts">You
             can view a full list of those dates here.</a>
           </p>
           <p>
