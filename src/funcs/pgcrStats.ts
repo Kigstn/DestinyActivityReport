@@ -541,6 +541,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             playerCounter.add(entry.player.destinyUserInfo.membershipId)
             playerDeaths += entry.values.deaths.basic.value
 
+            let fullClears = 0
+            let cpClears = 0
+            let failedClears = 0
+
             if (entry.player.destinyUserInfo.membershipId == membershipId) {
                 const character = entry.player.characterClass
 
@@ -636,18 +640,20 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                     }
                 }
             } else {
-                let fullClears = 0
-                let cpClears = 0
-                let failedClears = 0
-
-                if (completed) {
-                    if (fresh) {
-                        fullClears = 1
-                    } else {
-                        cpClears = 1
+                // make sure activities are not counted multiple times (swapped characters)
+                if (fullClears == 0) {
+                    if (completed) {
+                        if (fresh) {
+                            fullClears = 1
+                            cpClears = 0
+                            failedClears = 0
+                        } else {
+                            cpClears = 1
+                            failedClears = 0
+                        }
+                    } else if (cpClears == 0) {
+                        failedClears = 1
                     }
-                } else {
-                    failedClears = 1
                 }
 
                 if (!(entry.player.destinyUserInfo.membershipId in stats.teammates)) {
@@ -660,9 +666,9 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                         totalTime: entry.values.timePlayedSeconds.basic.value,
                     }
                 } else {
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears += fullClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears += cpClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears += failedClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears = fullClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears = cpClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears = failedClears
                     stats.teammates[entry.player.destinyUserInfo.membershipId].totalTime += entry.values.timePlayedSeconds.basic.value
                 }
             }

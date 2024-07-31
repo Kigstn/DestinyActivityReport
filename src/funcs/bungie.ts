@@ -290,7 +290,7 @@ export function calcSpecials(playerCount: number, deaths: number, mode: number, 
 
 function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
     // do the calculations we need on it
-    const finalEntries: PlayedActivities[] = []
+    const finalEntries: { [instance_id: string]: PlayedActivities } = {}
     for (const _entry of data) {
         const entry = _entry as PlayedActivities
         entry.datetime = new Date(entry.period)
@@ -306,10 +306,16 @@ function _calcExtras(data: DestinyHistoricalStatsPeriodGroup[]) {
             entry.specialTags = calcSpecials(entry.values.playerCount.basic.value, entry.values.deaths.basic.value, entry.activityDetails.mode, new Date(entry.period), entry.lengthSeconds)
         }
 
-        finalEntries.push(entry)
+        if (entry.instanceId in finalEntries) {
+            // already exists, aka swapped characters
+            finalEntries[entry.instanceId].completed = finalEntries[entry.instanceId].completed || entry.completed
+            finalEntries[entry.instanceId].specialTags = [...new Set([...finalEntries[entry.instanceId].specialTags, ...entry.specialTags])]
+        } else {
+            finalEntries[entry.instanceId] = entry
+        }
     }
 
-    return finalEntries
+    return Object.values(finalEntries)
 }
 
 async function _getActivities(destinyMembershipId: string, membershipType: number, characterId: string, data: DestinyHistoricalStatsPeriodGroup[], mode: number = 0) {

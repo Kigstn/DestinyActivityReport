@@ -137,8 +137,8 @@ function sortTeammates(teammates: PgcrTeammate[]) {
   )
 }
 
-// todo make sure that when I switch character, clears don't count twice. Relevant for both -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal and https://activities.report/3/4611686018467765462
-// todo I'm sure exiled doesnt have 15k forge clears lol -> https://activities.report/3/4611686018468433098
+// todo make sure that when I switch character, clears don't count twice. Relevant for both. Potentially fixed? -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal and https://activities.report/3/4611686018467765462
+// todo I'm sure exiled doesnt have 15k forge clears lol. Potentially fixed with duplicated detection? -> https://activities.report/3/4611686018468433098
 // todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
 </script>
 
