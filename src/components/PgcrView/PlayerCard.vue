@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {PlayerProfile} from "@/funcs/bungie";
 import Tooltip from "@/components/UserView/Tooltip.vue";
+import LinkToOtherPlayer from "@/components/LinkToOtherPlayer.vue";
 
 const props = defineProps<{
   teammate: PlayerProfile,
@@ -11,7 +12,7 @@ const props = defineProps<{
 
 <template>
   <!-- Player Info -->
-  <RouterLink :to="`/${teammate.membershipType}/${teammate.membershipId}`">
+  <LinkToOtherPlayer :membership-type="teammate.membershipType" :membership-id="teammate.membershipId">
     <div class="flex group/clickable">
       <!-- Icon -->
       <div class="shrink-0 text-clickable">
@@ -53,5 +54,5 @@ const props = defineProps<{
         </div>
       </div>
     </div>
-  </RouterLink>
+  </LinkToOtherPlayer>
 </template>

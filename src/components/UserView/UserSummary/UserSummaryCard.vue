@@ -2,6 +2,7 @@
 import {formatTime} from "@/funcs/utils";
 import type {PlayerProfile} from "@/funcs/bungie";
 import LoadingDiv from "@/components/Misc/LoadingDiv.vue";
+import LinkToOtherPlayer from "@/components/LinkToOtherPlayer.vue";
 
 defineProps<{
   user: PlayerProfile | null,
@@ -12,11 +13,11 @@ defineProps<{
 <template>
   <!-- Loading State-->
   <div v-if="loading" class="h-20 w-[395px]">
-    <LoadingDiv />
+    <LoadingDiv/>
   </div>
 
   <!-- Everything Loaded-->
-  <RouterLink v-else-if="user" :to="`/${user.membershipType}/${user.membershipId}`">
+  <LinkToOtherPlayer v-else-if="user" :membership-type="user.membershipType" :membership-id="user.membershipId">
     <div class="relative text-clickable group/clickable">
       <img :src="user.emblemUrl" alt="User Emblem" class="h-20 rounded-lg">
       <div class="absolute w-full h-full top-0 py-1 flex items-center text-shadow-xs shadow-bg_box">
@@ -72,5 +73,5 @@ defineProps<{
         </div>
       </div>
     </div>
-  </RouterLink>
+  </LinkToOtherPlayer>
 </template>

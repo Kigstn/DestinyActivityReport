@@ -450,6 +450,9 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
             if (value.directActivityModeType) {
                 activityModeBungie = value.directActivityModeType
             }
+            if (value.activityModeTypes) {
+                activityModeBungie = value.activityModeTypes[0]
+            }
 
             // tags
             const tags = []
@@ -571,6 +574,10 @@ const playerCache = new LRUCache({max: 1000})
 
 export async function getPlayerInfo(destinyMembershipId: any, membershipType: any): Promise<PlayerProfile> {
     membershipType = convertMembershipType(membershipType)
+
+    if (membershipType == 0) {
+        throw Error("MembershipType can't be 0")
+    }
 
     const cacheQuery = [destinyMembershipId, membershipType].toString()
     const cacheItem = playerCache.get(cacheQuery)
@@ -755,7 +762,7 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
     // this is very inconsitant. For example, forges are said the be mode "2" which is wrong... So exclude the basic ones
     // Full list: https://bungio.readthedocs.io/en/latest/API%20Reference/Models/Bungie%20API%20Models/destiny/historicalstats/definitions/#bungio.models.bungie.destiny.historicalstats.definitions.DestinyActivityModeType
     let actualMode = 0
-    if (activity.activityModeBungie >= 10) {
+    if (activity.activityModeBungie >= 10 || [3, 4, 6].includes(activity.activityModeBungie)) {
         actualMode = activity.activityModeBungie
     }
 
@@ -770,9 +777,6 @@ export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: 
             instanceIds.add(played.activityDetails.instanceId.toString())
         }
     }
-
-    console.log(instanceIds)
-    console.log(instanceIds.size)
 
     async function _getPGCR(hash: string, data: DestinyPostGameCarnageReportData[]) {
         const pgcrData = await getSinglePgcr(hash)

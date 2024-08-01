@@ -2,6 +2,7 @@
 import Tooltip from "@/components/UserView/Tooltip.vue";
 import {RouterLink} from "vue-router";
 import {convertMembershipTypeToStr, getPlatformIcon} from "@/funcs/bungie";
+import LinkToOtherPlayer from "@/components/LinkToOtherPlayer.vue";
 
 const props = defineProps<{
   membershipType: string | number,
@@ -19,7 +20,7 @@ const platformIcon = getPlatformIcon(membershipTypeStr)
 <template>
   <Tooltip>
     <template v-slot:hoverable>
-      <RouterLink :to="`/${membershipType}/${membershipId}`">
+      <LinkToOtherPlayer :membership-type="membershipType" :membership-id="membershipId">
         <div class="relative">
           <img
               :src="iconUrl"
@@ -33,13 +34,13 @@ const platformIcon = getPlatformIcon(membershipTypeStr)
           />
         </div>
 
-      </RouterLink>
+      </LinkToOtherPlayer>
     </template>
 
     <template v-slot:content>
       <div class="flex flex-col gap-4">
         <p class="text-lg">
-          {{name}}#{{code}}
+          {{ name }}#{{ code }}
         </p>
 
         <div class="flex justify-center">

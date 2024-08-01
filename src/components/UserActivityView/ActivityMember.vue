@@ -29,8 +29,22 @@ async function fetchData(newRoute: any) {
   teammate.value = null
   loading.value = true
 
-  teammate.value = await getPlayerInfo(props.data.membershipId, props.data.membershipType)
-
+  if (props.data.membershipType.toString() != "0") {
+    teammate.value = await getPlayerInfo(props.data.membershipId, props.data.membershipType)
+  } else {
+    teammate.value = {
+        membershipType: "0",
+        membershipTypes: ["0"],
+        membershipId: props.data.membershipId,
+        iconUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+        emblemUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+        name: "Unknown",
+        code: "0000",
+        lastPlayed: new Date("1970-01-01"),
+        light: 0,
+        totalMinutesPlayed: props.data.totalTime,
+    }
+  }
   loading.value = false
 }
 </script>
@@ -40,7 +54,7 @@ async function fetchData(newRoute: any) {
     <LoadingDiv class="!bg-bg_site"/>
   </div>
 
-  <div v-else class="flex flex-col justify-center w-64 bg-bg_site rounded-lg">
+  <div v-else class="flex flex-col justify-center w-64 bg-bg_site rounded-lg" :id="teammate.membershipId">
     <PlayerCard :teammate="teammate" :hint="formatTime(data.totalTime)" hint-tooltip="How long you played together in this activity"/>
 
     <!-- Stats -->

@@ -109,8 +109,6 @@ async function fetchData(newRoute: any) {
   }
 }
 
-// todo wenn ich über stats hovere, steht da undefined. potentially fixed -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
-// todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon. potentially fixed -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
         if (a.kills.total < b.kills.total) {
@@ -136,9 +134,6 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       }
   )
 }
-
-// todo I'm sure exiled doesnt have 15k forge clears lol. Potentially fixed with duplicated detection? -> https://activities.report/3/4611686018468433098
-// todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
 </script>
 
 <template>
