@@ -534,6 +534,7 @@ export async function getManifestActivities(destinyManifest: DestinyManifest) {
                     redacted: entry.redacted,
                     blacklisted: entry.blacklisted,
                     tags: entry.tags,
+                    activityModeBungie: entry.activityModeBungie,
                     _activityTypeHash: entry._activityTypeHash,
                     _directActivityModeHash: entry._directActivityModeHash,
                 }
@@ -751,16 +752,27 @@ export async function getSinglePgcr(hash: string) {
 
 
 export async function getPGCRs(activity: ManifestActivity, destinyMembershipId: any, membershipType: any) {
+    // this is very inconsitant. For example, forges are said the be mode "2" which is wrong... So exclude the basic ones
+    // Full list: https://bungio.readthedocs.io/en/latest/API%20Reference/Models/Bungie%20API%20Models/destiny/historicalstats/definitions/#bungio.models.bungie.destiny.historicalstats.definitions.DestinyActivityModeType
+    let actualMode = 0
+    if (activity.activityModeBungie >= 10) {
+        actualMode = activity.activityModeBungie
+    }
+
+
     // get the activity overview first - we need the reference IDs of the activities and can't make sure that they are passed
     // for example, what if the url is shared to a friend?
     // so just get them again
-    const instanceIds = []
-    const activities = await getActivities(destinyMembershipId, membershipType, activity.activityModeBungie)
+    const instanceIds: Set<string> = new Set()
+    const activities = await getActivities(destinyMembershipId, membershipType, actualMode)
     for (const played of activities) {
         if (activity.hash.includes(played.activityDetails.referenceId.toString())) {
-            instanceIds.push(played.activityDetails.instanceId.toString())
+            instanceIds.add(played.activityDetails.instanceId.toString())
         }
     }
+
+    console.log(instanceIds)
+    console.log(instanceIds.size)
 
     async function _getPGCR(hash: string, data: DestinyPostGameCarnageReportData[]) {
         const pgcrData = await getSinglePgcr(hash)

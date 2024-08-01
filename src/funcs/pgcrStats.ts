@@ -532,6 +532,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         let completed = false
         let completedChar = ""
         let timePlayed = 0
+        let activityTime = pgcr.entries[0].values.activityDurationSeconds.basic.value
 
         // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
         let period = new Date(pgcr.period)
@@ -693,16 +694,16 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         })
 
         if (completed) {
-            _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "combinedClears", timePlayed)
+            _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "combinedClears", activityTime)
             if (specialTags.length > 0) {
-                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "specialFullClears", timePlayed)
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "specialFullClears", activityTime)
             } else if (fresh) {
-                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "fullClears", timePlayed)
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "fullClears", activityTime)
             } else {
-                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "cpClears", timePlayed)
+                _addTimeStat(stats, completedChar, pgcr.activityDetails.instanceId, "cpClears", activityTime)
             }
         } else {
-            _addTimeStat(stats, null, pgcr.activityDetails.instanceId, "failedClears", timePlayed)
+            _addTimeStat(stats, null, pgcr.activityDetails.instanceId, "failedClears", activityTime)
         }
     }
 
@@ -827,18 +828,13 @@ function _addPercentStat(stats: PgcrStats, key: string, toDivide: string[], divi
         d += statDivideBy.total
     }
 
-    console.log("--------------")
-    console.log(d)
-
     if (d !== 0) {
         for (const k of toDivide) {
             const statToDivide = _getDeepStat(stats, k)
             v += statToDivide.total
-            console.log(v)
 
         }
         r = v / d
-        console.log(r)
 
     }
     stats[key].total = r

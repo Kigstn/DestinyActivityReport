@@ -206,7 +206,7 @@ let timesThrottled = 0
 const TIMEOUT = 15000;
 let API_KEY = "6958c5006ab74908a9dcd71524923df5"
 
-if (import.meta.env.DEV) {
+if (import.meta.env.DEV || import.meta.env.VITE_MANUAL_DEV_API_KEY) {
     API_KEY = "a9d3903bbba14bad9a6e4cf3b714b4f9"
 }
 
