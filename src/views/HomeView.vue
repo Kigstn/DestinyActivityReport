@@ -85,6 +85,17 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
             In addition, clears that are shorter than 2 minutes are excluded by default. Noone is that quick :)
           </p>
         </FaqItem>
+        <FaqItem question="Why does it say I did over a thousand black armory forge clears? That's wrong...">
+          <p>
+            Blame bungie!
+          </p>
+          <p>
+            History lesson: Forges had a very low timer which you extended by throwing batteries at the thingy. If you ran out of time, you failed.
+          </p>
+          <p>
+            However, if you failed, the API still shows the activity as completed [<a class="hyperlink" href="/pgcr/5516405893">Example</a>]. No way for me to know which forge was cleared, and which you failed sadly.
+          </p>
+        </FaqItem>
         <FaqItem question="What information do you collect and save?">
           <p>
             Nothing!
