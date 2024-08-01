@@ -531,7 +531,8 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         let playerDeaths = 0
         let completed = false
         let completedChar = ""
-        let timePlayed = 0
+        let timeStarted = []
+        let timePlayed = []
         let activityTime = pgcr.entries[0].values.activityDurationSeconds.basic.value
 
         // starting phase index is only the way to go before 22/2/22, after we should use activityWasStartedFromBeginning
@@ -539,14 +540,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
         const fresh = isFresh(period, pgcr)
 
         for (const entry of pgcr.entries) {
-            playerCounter.add(entry.player.destinyUserInfo.membershipId)
-            playerDeaths += entry.values.deaths.basic.value
-
-            let fullClears = 0
-            let cpClears = 0
-            let failedClears = 0
-
             if (entry.player.destinyUserInfo.membershipId == membershipId) {
+                playerCounter.add(entry.player.destinyUserInfo.membershipId)
+                playerDeaths += entry.values.deaths.basic.value
+
                 const character = entry.player.characterClass
 
                 if (entry.values.completed.basic.value == 1) {
@@ -554,7 +551,8 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                     completedChar = character
                 }
 
-                timePlayed += entry.values.timePlayedSeconds.basic.value
+                timePlayed.push(entry.values.timePlayedSeconds.basic.value)
+                timeStarted.push(entry.values.startSeconds.basic.value)
 
                 _addStat(stats, character, "totalTime", entry.values.timePlayedSeconds.basic.value)
 
@@ -589,7 +587,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                     for (const weapon of entry.extended.weapons) {
                         const rId = weapon.referenceId.toString()
 
-                        if (!(rId in stats)) {
+                        if (!(rId in stats.weaponStats)) {
                             stats.weaponStats[rId] = {
                                 referenceId: rId,
                                 kills: {
@@ -634,37 +632,72 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                         stats.weaponStats[rId].precisionKills.byClass[character] += weapon.values.uniqueWeaponPrecisionKills.basic.value
                     }
                 }
-            } else {
+            }
+        }
+        // loop again, but this time for the teammates
+        // we need the wanted player data first
+        for (const entry of pgcr.entries) {
+            let fullClears = 0
+            let cpClears = 0
+            let failedClears = 0
+
+            if (entry.player.destinyUserInfo.membershipId != membershipId) {
+                playerCounter.add(entry.player.destinyUserInfo.membershipId)
+                playerDeaths += entry.values.deaths.basic.value
+
+                if (entry.values.completed.basic.value == 1) {
+                    completed = true
+                }
+
                 // make sure activities are not counted multiple times (swapped characters)
-                if (fullClears == 0) {
-                    if (completed) {
-                        if (fresh) {
-                            fullClears = 1
-                            cpClears = 0
-                            failedClears = 0
-                        } else {
-                            cpClears = 1
-                            failedClears = 0
-                        }
-                    } else if (cpClears == 0) {
-                        failedClears = 1
+                if (completed) {
+                    if (fresh) {
+                        fullClears = 1
+                    } else {
+                        cpClears = 1
+                    }
+                } else {
+                    failedClears = 1
+                }
+
+                // todo this is not correct yet
+                // todo 4611686018526359277 should not be unknown
+                // calc the time played together
+                let playedTogether = 0
+                let teammateStarted = entry.values.startSeconds.basic.value
+                let teammatePlayed = entry.values.timePlayedSeconds.basic.value
+                for (const i in [...Array(timePlayed.length).keys()]) {
+                    let mainPlayerStarted = timeStarted[i]
+                    let mainPlayerPlayed = timePlayed[i]
+
+                    if (teammateStarted < mainPlayerStarted) {
+                        teammatePlayed = teammatePlayed - (mainPlayerStarted - teammateStarted)
+                        teammateStarted = mainPlayerStarted
+                    }
+                    if ((teammateStarted + teammatePlayed) > (mainPlayerStarted + mainPlayerPlayed)) {
+                        teammatePlayed = mainPlayerPlayed
+                    }
+                    if (teammatePlayed > 0) {
+                        playedTogether += teammatePlayed
                     }
                 }
 
-                if (!(entry.player.destinyUserInfo.membershipId in stats.teammates)) {
-                    stats.teammates[entry.player.destinyUserInfo.membershipId] = {
-                        membershipType: entry.player.destinyUserInfo.membershipType.toString(),
-                        membershipId: entry.player.destinyUserInfo.membershipId,
-                        fullClears: fullClears,
-                        cpClears: cpClears,
-                        failedClears: failedClears,
-                        totalTime: entry.values.timePlayedSeconds.basic.value,
+                if (playedTogether != 0) {
+                    if (!(entry.player.destinyUserInfo.membershipId in stats.teammates)) {
+                        stats.teammates[entry.player.destinyUserInfo.membershipId] = {
+                            membershipType: entry.player.destinyUserInfo.membershipType.toString(),
+                            membershipId: entry.player.destinyUserInfo.membershipId,
+                            fullClears: fullClears,
+                            cpClears: cpClears,
+                            failedClears: failedClears,
+                            totalTime: playedTogether,
+                        }
+                    } else {
+                        stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears += fullClears
+                        stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears += cpClears
+                        stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears += failedClears
+                        stats.teammates[entry.player.destinyUserInfo.membershipId].totalTime += playedTogether
                     }
-                } else {
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears += fullClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears += cpClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears += failedClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].totalTime += entry.values.timePlayedSeconds.basic.value
                 }
             }
         }
@@ -688,7 +721,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             datetime: period,
             completed: completed,
             cp: !fresh,
-            lengthSeconds: timePlayed,
+            lengthSeconds: timePlayed.reduce((a, b) => a + b),
             specialTags: specialTags,
             instanceId: pgcr.activityDetails.instanceId,
         })
