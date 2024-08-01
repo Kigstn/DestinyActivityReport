@@ -19,6 +19,7 @@ import ActivityWeapon from "@/components/ActivityWeapon.vue";
 import ActivityMember from "@/components/UserActivityView/ActivityMember.vue";
 import UserSummaryCard from "@/components/UserView/UserSummary/UserSummaryCard.vue";
 import CompletionIcon from "@/components/PgcrView/CompletionIcon.vue";
+import ActivityStat from "@/components/UserView/Activities/ActivityStat.vue";
 
 // vars we need
 const manifestLoading = ref(true)
@@ -108,8 +109,8 @@ async function fetchData(newRoute: any) {
   }
 }
 
-// todo wenn ich über stats hovere, steht da undefined -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
-// todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// todo wenn ich über stats hovere, steht da undefined. potentially fixed -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
+// todo weapon stats seem wrong. No way I only have 300 weapon kills with my most used wepaon. potentially fixed -> https://activities.report/3/4611686018467765462/All%20-%20Dungeon
 function sortWeapons(weapons: PgcrWeapon[]) {
   return weapons.sort((a: PgcrWeapon, b: PgcrWeapon) => {
         if (a.kills.total < b.kills.total) {
@@ -136,7 +137,6 @@ function sortTeammates(teammates: PgcrTeammate[]) {
   )
 }
 
-// todo make sure that when I switch character, clears don't count twice. Relevant for both. Potentially fixed? -> https://activities.report/3/4611686018467205801/Crown%20of%20Sorrow:%20Normal and https://activities.report/3/4611686018467765462
 // todo I'm sure exiled doesnt have 15k forge clears lol. Potentially fixed with duplicated detection? -> https://activities.report/3/4611686018468433098
 // todo this times out - improve timeout code -> https://activities.report/3/4611686018468433098/All%20-%20Forge%20Ignition
 </script>
@@ -219,7 +219,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
       </div>
 
       <div v-if="dataLoading" class="p-4 w-full h-40">
-        <LoadingDiv text="Requesting in-depth data from bungie, this can take a while..." class="!bg-bg_site"/>
+        <LoadingDiv text="Requesting in-depth data from bungie, this could take a couple of minutes..." class="!bg-bg_site"/>
       </div>
       <div v-else>
         <!-- Special Tags -->
@@ -241,7 +241,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
                 <ActivityClassStat name="Special Full" :amount="pgcrStats.specialFullClears.amount" show-null big/>
                 <ActivityClassStat name="Full" :amount="pgcrStats.fullClears.amount" show-null big/>
                 <ActivityClassStat name="Checkpoint" :amount="pgcrStats.cpClears.amount" show-null big/>
-                <ActivityClassStat name="Failed" :amount="pgcrStats.failedClears.amount" show-null/>
+                <ActivityStat name="Failed" :amount="pgcrStats.failedClears.amount.total" show-null/>
 
                 <div class="col-span-full w-full pt-2 grid grid-cols-3 place-items-center gap-8">
                   <ActivityClearTime name="Special Full" :data="pgcrStats.specialFullClears"/>
@@ -258,7 +258,7 @@ function sortTeammates(teammates: PgcrTeammate[]) {
                 <ActivityClassStat name="Checkpoint" :amount="pgcrStats.cpClears.amount" show-null big/>
                 <div class="col-span-full grid grid-cols-2 gap-8">
                   <ActivityClassStat name="Combined" :amount="pgcrStats.combinedClears.amount" show-null/>
-                  <ActivityClassStat name="Failed" :amount="pgcrStats.failedClears.amount" show-null/>
+                  <ActivityStat name="Failed" :amount="pgcrStats.failedClears.amount.total" show-null/>
                 </div>
 
                 <div class="col-span-full w-full pt-12 grid grid-cols-1 place-items-center gap-8">

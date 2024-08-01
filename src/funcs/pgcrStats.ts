@@ -584,7 +584,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                     _addBestPercentStat(stats, character, pgcr.activityDetails.instanceId, "bestPrecisionKillsPercent", ["precisionKills"], "kills")
                 }
 
-                if (entry.extended.weapons !== undefined) {
+                if (entry.extended.weapons !== undefined && character != undefined) {
                     for (const weapon of entry.extended.weapons) {
                         const rId = weapon.referenceId.toString()
 
@@ -627,15 +627,9 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                         }
 
                         stats.weaponStats[rId].kills.total += weapon.values.uniqueWeaponKills.basic.value
-                        if (!(character in stats.weaponStats[rId].kills.byClass)) {
-                            stats.weaponStats[rId].kills.byClass[character] += 0
-                        }
                         stats.weaponStats[rId].kills.byClass[character] += weapon.values.uniqueWeaponKills.basic.value
 
                         stats.weaponStats[rId].precisionKills.total += weapon.values.uniqueWeaponPrecisionKills.basic.value
-                        if (!(character in stats.weaponStats[rId].precisionKills.byClass)) {
-                            stats.weaponStats[rId].precisionKills.byClass[character] += 0
-                        }
                         stats.weaponStats[rId].precisionKills.byClass[character] += weapon.values.uniqueWeaponPrecisionKills.basic.value
                     }
                 }
@@ -666,9 +660,9 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                         totalTime: entry.values.timePlayedSeconds.basic.value,
                     }
                 } else {
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears = fullClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears = cpClears
-                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears = failedClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].fullClears += fullClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].cpClears += cpClears
+                    stats.teammates[entry.player.destinyUserInfo.membershipId].failedClears += failedClears
                     stats.teammates[entry.player.destinyUserInfo.membershipId].totalTime += entry.values.timePlayedSeconds.basic.value
                 }
             }
@@ -771,6 +765,10 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
 }
 
 function _addStat(stats: PgcrStats, character: string, key: string, value: number) {
+    if (!character) {
+        return
+    }
+
     stats[key].total += value
     if (!(character in stats[key].byClass)) {
         stats[key].byClass[character] = 0
@@ -779,6 +777,10 @@ function _addStat(stats: PgcrStats, character: string, key: string, value: numbe
 }
 
 function _addBestStat(stats: PgcrStats, character: string, instanceId: string, key: string, value: number, lower = false) {
+    if (!character) {
+        return
+    }
+
     if (!(character in stats[key].byClass)) {
         if (lower) {
             stats[key].byClass[character] = 0
@@ -888,6 +890,10 @@ function _addBestPercentStat(stats: PgcrStats, character: string, instanceId: st
 }
 
 function _addTimeStat(stats: PgcrStats, character: string | null, instanceId: string, key: string, value: number) {
+    if (!character) {
+        return
+    }
+
     stats[key].amount.total += 1
     stats[key].totalTime.total += value
 

@@ -1,5 +1,6 @@
 import {type HttpClient, type HttpClientConfig, PlatformErrorCodes, type ServerResponse} from "bungie-api-ts/destiny2";
 import Semaphore from "semaphore-async-await";
+import {RateLimiter} from "limiter";
 
 
 // copied from https://github.com/DestinyItemManager/DIM -> thanks a ton!
@@ -111,6 +112,8 @@ function createFetchWithNonStoppingTimeout(
     };
 }
 
+// bungie limits after 250 in 10s, so the default is 240
+const limiter = new RateLimiter({ tokensPerInterval: 240, interval: 10 * 1000 });
 const lock = new Semaphore(50)
 
 // copied from https://github.com/DestinyItemManager/DIM -> thanks a ton!
@@ -132,6 +135,7 @@ function createHttpClient(fetchFunction: typeof fetch, apiKey: string): HttpClie
         });
 
         // make sure to not call everything at once
+        await limiter.removeTokens(1)
         await lock.acquire()
         const response = await fetchFunction(fetchOptions);
         lock.release()

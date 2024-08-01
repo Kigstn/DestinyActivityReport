@@ -798,7 +798,7 @@ function getDataByActivities(activity: ManifestActivity): ActivityStats {
 
         <div v-if="loading" class="activities_grid">
           <div class="w-[320px] h-[533.333px]" v-for="x in [...Array(8).keys()]">
-            <LoadingDiv text="Requesting data from bungie, this can take a while..." class="!bg-bg_site"/>
+            <LoadingDiv text="Requesting data from bungie, this could take a couple of minutes..." class="!bg-bg_site"/>
           </div>
         </div>
 
