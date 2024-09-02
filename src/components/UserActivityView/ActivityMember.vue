@@ -21,28 +21,36 @@ const route = useRoute()
 watch(() => route.params, fetchData, {immediate: true})
 
 async function fetchData(newRoute: any) {
-  if (teammate.value != null && props.data.membershipId == teammate.value.membershipId) {
+  if (teammate.value != null && teammate.value.success == true && props.data.membershipId == teammate.value.membershipId) {
+    console.log("Using cached duplicate")
     return
   }
 
+  const membershipType = props.data.membershipType.toString()
+
   // @ts-ignore
-  teammate.value = null
   loading.value = true
 
-  if (props.data.membershipType.toString() != "0") {
-    teammate.value = await getPlayerInfo(props.data.membershipId, props.data.membershipType)
-  } else {
-    teammate.value = {
-        membershipType: "0",
-        membershipTypes: ["0"],
-        membershipId: props.data.membershipId,
-        iconUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
-        emblemUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
-        name: "Unknown",
-        code: "0000",
-        lastPlayed: new Date("1970-01-01"),
-        light: 0,
-        totalMinutesPlayed: props.data.totalTime,
+  teammate.value = {
+    membershipType: membershipType,
+    membershipTypes: [membershipType],
+    membershipId: props.data.membershipId,
+    iconUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+    emblemUrl: "https://www.bungie.net/img/misc/missing_icon_d2.png",
+    name: "Unknown",
+    code: "0000",
+    lastPlayed: new Date("1970-01-01"),
+    light: 0,
+    totalMinutesPlayed: props.data.totalTime,
+    success: false,
+  }
+
+  if (membershipType != "0") {
+    try {
+      teammate.value = await getPlayerInfo(props.data.membershipId, membershipType)
+      teammate.value.success = true
+    } catch (e) {
+      console.log(`Can't find destiny player so ignoring them. Their info - membershipType: ${membershipType} | membershipId: ${props.data.membershipId}`)
     }
   }
   loading.value = false
@@ -55,7 +63,8 @@ async function fetchData(newRoute: any) {
   </div>
 
   <div v-else class="flex flex-col justify-center w-64 bg-bg_site rounded-lg" :id="teammate.membershipId">
-    <PlayerCard :teammate="teammate" :hint="formatTime(data.totalTime)" hint-tooltip="How long you played together in this activity"/>
+    <PlayerCard :teammate="teammate" :hint="formatTime(data.totalTime)"
+                hint-tooltip="How long you played together in this activity"/>
 
     <!-- Stats -->
     <div class="grid grid-cols-3 place-items-center gap-2 px-1 p-4">

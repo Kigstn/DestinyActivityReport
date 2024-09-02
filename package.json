@@ -1,6 +1,6 @@
 {
   "name": "destiny-activities-report",
-  "version": "v0.1.0",
+  "version": "v0.1.1",
   "private": true,
   "type": "module",
   "scripts": {

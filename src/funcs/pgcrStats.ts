@@ -660,8 +660,7 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
                     failedClears = 1
                 }
 
-                // todo this is not correct yet
-                // todo 4611686018526359277 should not be unknown
+                // todo 4611686018526359277 should not be unknown. Potentially fixed, but cached wrongly. Loads fine for raid stats -> http://localhost:5173/3/4611686018467765462/All%20-%20Dungeon
                 // calc the time played together
                 let playedTogether = 0
                 let teammateStarted = entry.values.startSeconds.basic.value
