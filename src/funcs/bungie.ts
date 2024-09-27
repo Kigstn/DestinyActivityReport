@@ -14,11 +14,17 @@ import {
 } from 'bungie-api-ts/destiny2';
 import {bungieClient} from "@/funcs/bungieClient";
 import {counter} from "@/funcs/utils";
-import {searchByGlobalNamePost, type UserInfoCard, type UserSearchResponseDetail} from "bungie-api-ts/user";
+import {
+    getMembershipDataById,
+    searchByGlobalNamePost,
+    type UserInfoCard,
+    type UserSearchResponseDetail
+} from "bungie-api-ts/user";
 import type {PgcrWeapon} from "@/funcs/pgcrStats";
 import {LRUCache} from "lru-cache";
 import {blacklistedTimes} from "@/data/blacklistedTimeframes";
 import {dayOneTimes} from "@/data/dayOneTimes";
+import type {GroupUserInfoCard} from "bungie-api-ts/groupv2";
 
 
 export function getPlatformIcon(membershipTypeStr: string) {
@@ -657,6 +663,15 @@ export interface BungieUserSearchResult {
     allMembershipTypes: number[]
 }
 
+async function _searchDirectMembershipId(membershipID: string) {
+    const data = await getMembershipDataById(bungieClient, {
+        membershipId: membershipID,
+        membershipType: -1 // all
+    })
+
+    return _parseUserMembershipsSearchResults(data.Response.destinyMemberships)
+}
+
 async function _searchDirectDestinyPlayer(name: string, code: number) {
     const data = await searchDestinyPlayerByBungieName(bungieClient, {
         membershipType: -1 // all
@@ -669,6 +684,7 @@ async function _searchDirectDestinyPlayer(name: string, code: number) {
 }
 
 const userRegex = new RegExp("#\\d{4}$")
+const userIDRegex = new RegExp("^\\d{15,}$")
 
 export async function searchBungieUser(query: string, page: number = 0) {
     // can we search directly?
@@ -680,6 +696,19 @@ export async function searchBungieUser(query: string, page: number = 0) {
                 const name = parts.slice(0, -1).join("#")
                 const code = parseInt(parts.slice(-1)[0])
                 const res = await _searchDirectDestinyPlayer(name, code)
+
+                if (res != null) {
+                    return [res]
+                }
+            } catch (e) {
+                // run as normally, we don't want to break anything
+            }
+        }
+
+        // is it a destiny user ID (or looks roughly like one)?
+        if (userIDRegex.test(query)) {
+            try {
+                const res = await _searchDirectMembershipId(query)
 
                 if (res != null) {
                     return [res]
@@ -719,7 +748,7 @@ function _parseUserSearchResults(data: UserSearchResponseDetail[]) {
     return res
 }
 
-function _parseUserMembershipsSearchResults(data: UserInfoCard[]): null | BungieUserSearchResult {
+function _parseUserMembershipsSearchResults(data: UserInfoCard[] | GroupUserInfoCard[]): null | BungieUserSearchResult {
     if (data.length == 0) {
         return null
     }
