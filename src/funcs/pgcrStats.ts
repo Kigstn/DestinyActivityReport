@@ -715,12 +715,17 @@ export function calcStats(pgcrs: DestinyPostGameCarnageReportData[], membershipI
             stats.specialTags[tag].instanceId = pgcr.activityDetails.instanceId
         }
 
+        let totalTimePlayed = 0
+        if (timePlayed.length > 0) {
+            totalTimePlayed = timePlayed.reduce((a, b) => a + b)
+        }
+
         // @ts-ignore
         stats.data.push({
             datetime: period,
             completed: completed,
             cp: !fresh,
-            lengthSeconds: timePlayed.reduce((a, b) => a + b),
+            lengthSeconds: totalTimePlayed,
             specialTags: specialTags,
             instanceId: pgcr.activityDetails.instanceId,
         })
