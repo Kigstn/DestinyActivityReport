@@ -23,7 +23,7 @@ function searchUser() {
     return
   }
 
-  const promise = searchBungieUser(userSearch.value)
+  const promise = searchBungieUser(userSearch.value.trim())
   promise.then((data) => {
     if (data.length == 1) {
       // only one result -> redirect

@@ -62,7 +62,7 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
           </p>
         </FaqItem>
         <FaqItem
-            question="Why does my clear does not have any special tags? I cleared it solo - but nothing shows up :(">
+            question="Why does my clear not have any special tags? I cleared it solo - but nothing shows up :(">
           <p>
             Did you maybe clear it in a timeframe that we do not give any tags for? <a class="hyperlink"
                                                                                        href="https://github.com/Kigstn/DestinyActivityReport/tree/main/src/data/blacklistedTimeframes.ts">You
@@ -111,7 +111,7 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
             activities should show up automatically.
           </p>
         </FaqItem>
-        <FaqItem question="What's your favorite activity">
+        <FaqItem question="What's your favorite activity?">
           <p>
             Scourge of the Past!
           </p>
