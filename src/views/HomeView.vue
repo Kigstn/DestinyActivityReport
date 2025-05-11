@@ -25,6 +25,9 @@ import FaqItem from "@/components/Misc/FaqItem.vue";
         Welcome to Destiny Activity Report!
       </p>
       <p>
+        Destiny Activity Report is a static website which let's Destiny 2 players interactively view all of their activity stats! Activities dynamically loaded from the bungie API, so the website will always automatically represent the current state of the game.
+      </p>
+      <p>
         If you have any feedback, feature requests, or if you find any of the purposefully included bugs - please reach
         out to me by creating an issue on GitHub or by writing me an email. Links can be found below :)
       </p>
