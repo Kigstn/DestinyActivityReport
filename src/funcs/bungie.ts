@@ -65,7 +65,7 @@ function convertMembershipType(membershipType: string | number): number {
             throw err
         }
     }
-    if (!(membershipType in [...Object.keys(membershipTypesByInt)])) {
+    if (!(membershipType in membershipTypesByInt)) {
         throw err
     }
 
